@@ -46,7 +46,7 @@ Logos en `src/assets/logos/` (copiados de alco-landing1).
 
 ## Landing
 Hero tipo funnel Bakano: logo · contador · promesa · beneficios · video · cupos · CTA · "sin costo".
-Luego: problema (línea de tiempo), oferta (modelos/Academia/respaldo), Fernando (desde 2015), cierre.
+Luego: problema (línea de tiempo), Fernando (desde 2015), cierre.
 El contador es REAL: cuenta hasta el domingo 23:59 hora de Ecuador (`src/utils/week.ts`), cuando
 cierra la agenda semanal. No se reinicia por visitante.
 

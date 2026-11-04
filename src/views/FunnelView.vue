@@ -161,44 +161,6 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <!-- OFERTA -->
-    <section class="offer" aria-labelledby="offer-title">
-      <div class="offer__field" aria-hidden="true"></div>
-      <div class="wrap">
-        <div class="head reveal">
-          <h2 id="offer-title" class="title">
-            {{ L.offer.title }} <span class="u-sun">{{ L.offer.titleAccent }}</span>
-          </h2>
-        </div>
-
-        <div class="bento">
-          <article class="tile tile--models reveal">
-            <p class="tile__tag"><i class="fa-solid fa-circle" aria-hidden="true"></i> {{ L.offer.modelsTitle }}</p>
-            <ul class="models" role="list">
-              <li v-for="m in L.offer.models" :key="m"><small>Agras</small>{{ m }}</li>
-            </ul>
-            <p class="tile__text">{{ L.offer.modelsText }}</p>
-          </article>
-
-          <article class="tile tile--academy reveal">
-            <p class="tile__tag tile__tag--dark">{{ L.offer.academy.tag }}</p>
-            <h3 class="tile__title">{{ L.offer.academy.title }}</h3>
-            <p class="tile__text">{{ L.offer.academy.text }}</p>
-            <blockquote class="tile__quote">“{{ L.offer.academy.quote }}”</blockquote>
-          </article>
-
-          <article class="tile tile--support reveal">
-            <h3 class="tile__title">{{ L.offer.support.title }}</h3>
-            <ul class="support" role="list">
-              <li v-for="s in L.offer.support.items" :key="s.text">
-                <i :class="['fa-solid', s.icon]" aria-hidden="true"></i>{{ s.text }}
-              </li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
     <!-- QUIÉN TE LO CUENTA -->
     <section class="mentor" aria-labelledby="mentor-title">
       <div class="wrap mentor__inner reveal">
@@ -572,7 +534,8 @@ $night: $surface-dark;
 // ── Quién te lo cuenta ───────────────────────────────────────────────────────
 .mentor {
   padding: 88px 0;
-  background: $raised;
+  border-top: 1px solid $line;
+  background: $surface;
 
   &__inner {
     display: grid;
@@ -789,155 +752,6 @@ $night: $surface-dark;
   p {
     color: $ink-on-dark-muted;
     line-height: 1.6;
-  }
-}
-
-
-// ── Oferta (bento) ───────────────────────────────────────────────────────────
-.offer {
-  position: relative;
-  overflow: hidden;
-  padding: 88px 0;
-  background: $night;
-  color: $ink-on-dark;
-
-  &__field {
-    @include field-rows(0.12);
-    height: 40%;
-  }
-
-  .wrap {
-    position: relative;
-  }
-}
-
-.bento {
-  display: grid;
-  gap: 16px;
-
-  @media (min-width: 860px) {
-    grid-template-columns: 1.2fr 1fr;
-    grid-template-rows: auto auto;
-  }
-}
-
-.tile {
-  padding: 28px 24px;
-  border: 1px solid rgba(#fff, 0.1);
-  border-radius: $radius-lg;
-  background: rgba(#fff, 0.04);
-
-  &__tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    @include eyebrow;
-    color: $leaf-bright;
-
-    i {
-      font-size: 0.45rem;
-    }
-
-    &--dark {
-      color: $primary;
-    }
-  }
-
-  &__title {
-    margin-top: 10px;
-    font-size: 1.5rem;
-  }
-
-  &__text {
-    margin-top: 12px;
-    color: $ink-on-dark-muted;
-    line-height: 1.6;
-  }
-
-  &__quote {
-    margin: 20px 0 0;
-    padding-top: 16px;
-    border-top: 1px solid rgba($ink, 0.2);
-    font-family: $font-display;
-    font-size: 1.3rem;
-    font-weight: 500;
-    line-height: 1.25;
-  }
-
-  &--models {
-    background: linear-gradient(160deg, rgba($primary, 0.55), rgba($primary, 0.15));
-
-    @media (min-width: 860px) {
-      grid-row: span 2;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-  }
-
-  &--academy {
-    background: $sun;
-    color: $ink;
-    border-color: transparent;
-
-    .tile__text {
-      color: rgba($ink, 0.8);
-    }
-  }
-}
-
-.models {
-  display: grid;
-  gap: 4px;
-  margin: 20px 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(#fff, 0.12);
-    font-family: $font-display;
-    font-size: clamp(3rem, 12vw, 5.2rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: 0.01em;
-  }
-
-  small {
-    color: $ink-on-dark-muted;
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-}
-
-.support {
-  display: grid;
-  gap: 12px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: $ink-on-dark;
-  }
-
-  i {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: $radius-md;
-    background: rgba($leaf-bright, 0.14);
-    color: $leaf-bright;
   }
 }
 

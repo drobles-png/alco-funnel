@@ -53,29 +53,6 @@ export const LANDING = {
     },
   },
 
-  offer: {
-    eyebrow: 'Con tu propio dron y ALCO',
-    title: 'El equipo, el criterio',
-    titleAccent: 'y el respaldo',
-    models: ['T55', 'T70P', 'T100'],
-    modelsTitle: 'DJI Agras en stock',
-    modelsText: 'Listos para salir a tu finca. No vas a tener que esperar meses cuando ya estás en temporada.',
-    academy: {
-      tag: 'Academia EAD (Escuela de Agrodrones)',
-      title: 'No solo aprendes a volar el dron',
-      text: 'Aprendes manejo agronómico: qué producto aplicar, a qué altura, a qué hora y en qué cultivo.',
-      quote: 'El dron es la herramienta, pero lo que cuida tu plantación es el criterio.',
-    },
-    support: {
-      title: 'Respaldo para que no pares en plena temporada',
-      items: [
-        { icon: 'fa-gears', text: 'Repuestos en stock' },
-        { icon: 'fa-screwdriver-wrench', text: 'Planes de mantenimiento preventivo' },
-        { icon: 'fa-car-battery', text: 'Equipo de respaldo: generadores y cargadores' },
-      ],
-    },
-  },
-
   mentor: {
     eyebrow: 'Quién te lo cuenta',
     name: 'Fernando Alvear',
