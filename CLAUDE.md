@@ -11,6 +11,10 @@ Estrategia (ficha_tecnica, MCP bakano): venta de ticket alto (~$23.000), objetiv
 Hecho desde `drobles-png/funnel-vsl-base` (skill `funnel-vsl-bakano`). Comandos, convenciones y
 envíos generales: ver el README de la base y la skill.
 
+## Deploy
+Repo `drobles-png/alco-funnel` (público) → Vercel `bakano-proyects/alco-funnel`, git conectado: cada push a
+`main` despliega a https://alco-funnel.vercel.app. Env vars en Vercel: `META_PIXEL_ID`, `META_CAPI_TOKEN`.
+
 ## Comandos
 `pnpm install` · `pnpm dev` · `pnpm type-check` · `pnpm build`
 E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps e2e/agenda.json --mode stub`
