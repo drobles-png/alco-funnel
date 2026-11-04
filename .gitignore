@@ -22,3 +22,6 @@ coverage
 e2e_out/
 .impeccable/
 node-compile-cache/
+
+.vercel
+.env*
