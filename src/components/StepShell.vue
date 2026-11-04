@@ -10,7 +10,7 @@ withDefaults(defineProps<{ step?: string; wide?: boolean }>(), { step: '', wide:
   <div class="shell">
     <header class="shell__head">
       <RouterLink to="/" class="shell__home" aria-label="Volver al inicio">
-        <BrandLogo />
+        <BrandLogo light />
       </RouterLink>
       <p v-if="step" class="shell__step">{{ step }}</p>
     </header>
@@ -32,7 +32,11 @@ withDefaults(defineProps<{ step?: string; wide?: boolean }>(), { step: '', wide:
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 24px 16px 8px;
+    padding: 22px 16px 18px;
+    background:
+      repeating-linear-gradient(90deg, rgba($leaf-bright, 0.12) 0 1px, transparent 1px 40px),
+      linear-gradient(180deg, $surface-dark, #0e2a45);
+    border-bottom: 3px solid $sun;
   }
 
   &__home {
@@ -41,7 +45,7 @@ withDefaults(defineProps<{ step?: string; wide?: boolean }>(), { step: '', wide:
 
   &__step {
     @include eyebrow;
-    color: $ink-muted;
+    color: $sun;
   }
 
   &__main {

@@ -19,57 +19,116 @@ export const SEO = {
 }
 
 // ── Landing (/) ───────────────────────────────────────────────────────────────
+// Todo sale del guion del VSL de Fernando Alvear. No agregar cifras ni testimonios inventados.
 export const LANDING = {
-  topbarTag: 'Drones de fumigación desde 2015',
-  audience: ['Fincas de 30, 50 o 100 ha', 'Guayas, Los Ríos, El Oro y Manabí', 'Agricultores que hoy contratan el servicio'],
-  headline: 'Deja de esperar al fumigador:',
-  headlineAccent: 'fumiga tu finca el día que tú decides',
-  sub: `El cultivo está listo, llamas al que te presta el servicio y no contesta, te cambia la fecha o llega tarde. ${PERSON_NAME} te cuenta cómo muchos agricultores de la Costa dejaron de pasar por eso.`,
-  videoCaption: `${BRAND_NAME} · Video corto`,
+  topbarTag: 'DJI Agras · en stock',
+  kicker: 'Para agricultores de la Costa',
+  headline: 'Deja de esperar',
+  headlineMid: 'al fumigador.',
+  headlineAccent: 'Fumiga el día que tú decides.',
+  sub: 'El cultivo está listo, llamas al que te presta el servicio y no contesta, te cambia la fecha o llega cuando ya es tarde. Fernando Alvear te cuenta cómo muchos agricultores de la Costa dejaron de pasar por eso.',
+  videoCaption: `${BRAND_NAME} · Desde 2015`,
   cta: 'Ver el video completo',
   ctaNote: 'Sin costo · Solo te pedimos tus datos para mostrártelo',
+  provinces: ['Guayas', 'Los Ríos', 'El Oro', 'Manabí'],
+  provincesLabel: 'Trabajamos con agricultores de',
 
-  pains: {
+  // El problema contado como una línea de tiempo (VSL, bloque 3)
+  clock: {
     eyebrow: 'El problema',
-    title: 'Cuando dependes de un servicio externo, tu cosecha queda en manos de otro',
-    items: [
-      { icon: 'fa-calendar-xmark', title: 'Otro decide por ti', text: 'Decide cuándo viene, cuánto te cobra y cómo aplica. Y en el agro, el momento lo es todo.' },
-      { icon: 'fa-bug', title: 'Dos o tres días cuestan caro', text: 'Un retraso le da ventaja a plagas, hongos y malezas. No se nota el día que fumigas: se nota en la cosecha.' },
-      { icon: 'fa-cloud-showers-heavy', title: 'En temporada es peor', text: 'Todos fumigan al mismo tiempo. Con El Niño vienen más lluvia y más sigatoca, y el primero que queda esperando es el agricultor pequeño o mediano.' },
+    title: 'En el agro, el momento',
+    titleAccent: 'lo es todo',
+    sub: 'Cuando dependes de un servicio externo, tu cosecha queda en manos de otra persona: ella decide cuándo viene, cuánto te cobra y cómo aplica.',
+    days: [
+      { tag: 'Día 0', title: 'El cultivo está listo', text: 'Llamas al que te presta el servicio.' },
+      { tag: 'Día 1', title: 'No contesta', text: 'O te cambia la fecha.' },
+      { tag: 'Día 2–3', title: 'La plaga avanza', text: 'Dos o tres días de retraso le dan ventaja a plagas, hongos y malezas.', warn: true },
+      { tag: 'Cosecha', title: 'Ahí se nota', text: 'No se nota el día que fumigas. Se nota en la cosecha.', warn: true },
+    ],
+    season: {
+      title: 'En temporada es peor',
+      text: 'Todos necesitan fumigar al mismo tiempo. Con El Niño vienen más lluvia y más presión de sigatoca, y los que prestan servicio no van a dar abasto. El primero que queda esperando es el agricultor pequeño o mediano.',
+    },
+  },
+
+  // Servicio externo vs. dron propio (VSL, bloque 4)
+  compare: {
+    eyebrow: 'Por eso',
+    title: 'Cada vez más fincas de 30, 50 o 100 ha',
+    titleAccent: 'compran su propio dron',
+    them: 'Dependiendo de otros',
+    us: 'Con tu propio dron',
+    rows: [
+      { them: 'Fumigas cuando el otro puede venir', us: 'Fumigas el día que tú decides, sin pedirle favor a nadie' },
+      { them: 'Confías en el producto y la dosis que el otro decida', us: 'Sabes exactamente qué producto y qué dosis se aplicaron' },
+      { them: 'Esperas tu turno cuando todos necesitan fumigar', us: 'Cubres tus hectáreas en mucho menos tiempo' },
+      { them: 'Equipos y cuadrillas que entran al cultivo', us: 'Sin pisar la plantación y sin exponer a tu gente a los insumos' },
+      { them: 'Cada fumigada es un pago que se va', us: 'Lo que pagabas por el servicio se queda en tu finca' },
     ],
   },
 
-  steps: {
-    eyebrow: 'Con tu propio dron',
-    title: 'Fumigas cuando tú decides, sin pedirle favor a nadie',
-    items: [
-      { title: 'Equipo en stock', text: 'DJI Agras T55, T70P y T100 listos para salir a tu finca. No esperas meses cuando ya estás en temporada.' },
-      { title: 'Academia EAD', text: 'Si lo decides, te capacitamos: no solo a volar, también qué producto aplicar, a qué altura, a qué hora y en qué cultivo.' },
-      { title: 'Respaldo cada temporada', text: 'Repuestos en stock, mantenimiento preventivo y equipo de respaldo, como generadores y cargadores, para que no pares.' },
-    ],
+  // Lo que pone ALCO (VSL, bloque 5)
+  offer: {
+    eyebrow: 'Con ALCO',
+    title: 'El equipo, el criterio',
+    titleAccent: 'y el respaldo',
+    models: ['T55', 'T70P', 'T100'],
+    modelsTitle: 'DJI Agras en stock',
+    modelsText: 'Listos para salir a tu finca. No vas a tener que esperar meses cuando ya estás en temporada.',
+    academy: {
+      tag: 'Academia EAD · si tú lo decides',
+      title: 'No solo aprendes a volar el dron',
+      text: 'Aprendes manejo agronómico: qué producto aplicar, a qué altura, a qué hora y en qué cultivo.',
+      quote: 'El dron es la herramienta, pero lo que cuida tu plantación es el criterio.',
+    },
+    support: {
+      title: 'Respaldo para que no pares en plena temporada',
+      items: [
+        { icon: 'fa-gears', text: 'Repuestos en stock' },
+        { icon: 'fa-screwdriver-wrench', text: 'Planes de mantenimiento preventivo' },
+        { icon: 'fa-car-battery', text: 'Equipo de respaldo: generadores y cargadores' },
+      ],
+    },
     cta: 'Quiero ver el video',
+  },
+
+  // Autoridad (VSL, bloque 2 + atención)
+  authority: {
+    year: '2015',
+    yearLabel: 'Trabajamos con drones de fumigación desde',
+    text: 'Fuimos de los pioneros en traerlos al país. Lo que Fernando te cuenta en el video es lo que vemos todos los días en el campo.',
+    promise: 'Desde que compras tu dron hasta cada temporada que viene, estamos contigo.',
+    quote: 'Ustedes sí me han ayudado con soluciones',
+    quoteBy: 'Lo que más nos dicen nuestros clientes',
   },
 
   fit: {
     eyebrow: 'Antes de seguir',
     title: '¿Es para ti?',
-    items: [
-      { yes: true, text: 'Tienes tu finca andando y ya sabes lo que es sacar una cosecha.' },
-      { yes: true, text: 'Hoy dependes de que otro llegue a fumigar a tiempo y quieres dejar de hacerlo.' },
-      { yes: false, text: 'No tienes finca o solo buscas contratar un servicio de fumigación.' },
+    yes: [
+      'Tienes tu finca andando y ya sabes lo que es sacar una cosecha.',
+      'Hoy dependes de que otro llegue a fumigar a tiempo.',
+      'Quieres que tu finca produzca más y dependa menos de otros.',
     ],
+    no: 'No tienes finca o solo buscas contratar un servicio de fumigación.',
   },
 
   closing: {
     eyebrow: 'Siguiente paso',
-    title: 'Tu cosecha no puede seguir esperando al fumigador',
-    sub: 'Mira el video y agendemos una reunión para conocer tu caso: tu cultivo, tus hectáreas y cómo fumigas hoy.',
+    title: 'Tu cosecha no puede seguir',
+    titleAccent: 'esperando al fumigador',
+    sub: 'Mira el video y agendemos una reunión para conocer tu caso.',
+    agenda: [
+      { icon: 'fa-seedling', text: 'Tu cultivo' },
+      { icon: 'fa-ruler-combined', text: 'Tus hectáreas' },
+      { icon: 'fa-spray-can-sparkles', text: 'Cómo fumigas hoy' },
+    ],
     cta: 'Ver el video completo',
   },
 
-  sticky: { title: 'Tu propio dron de fumigación', sub: `Video de ${PERSON_NAME}`, cta: 'Ver video' },
+  sticky: { title: 'Tu propio dron de fumigación', sub: 'Video de Fernando Alvear', cta: 'Ver video' },
   disclaimer:
-    'Los resultados dependen de cada caso. Este sitio no está respaldado por Meta Platforms, Inc. ni forma parte de Facebook.',
+    'DJI y Agras son marcas de sus respectivos dueños. Los resultados dependen de cada finca y cultivo. Este sitio no está respaldado por Meta Platforms, Inc. ni forma parte de Facebook.',
 }
 
 // ── Modal de registro ─────────────────────────────────────────────────────────

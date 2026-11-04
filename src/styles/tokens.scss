@@ -6,7 +6,15 @@
 $primary: #004784; // azul ALCO (sale del logo) // CTAs, enlaces, acentos
 $primary-hover: #00345f;
 $on-primary: #ffffff; // texto sobre $primary (contraste 4.5:1 mínimo)
-$primary-soft: #e3edf6; // fondos de chips y opciones seleccionadas
+$primary-soft: #e3edf6;
+
+// Amarillo sol: el CTA de toda la página (texto $ink encima, contraste > 9:1)
+$sun: #f5b301;
+$sun-hover: #ffc629;
+$sun-shadow: #b38300;
+// Verde cultivo para checks y detalles del campo
+$leaf: #2e9b4f;
+$leaf-bright: #5cc97b; // fondos de chips y opciones seleccionadas
 
 // ── Neutros ───────────────────────────────────────────────────────────────────
 $surface: #f2f5f8; // fondo de página
@@ -28,9 +36,9 @@ $font-display: 'Oswald', 'Arial Narrow', sans-serif; // títulos (ficha de ALCO)
 $font-mono: 'Oswald', 'Arial Narrow', sans-serif; // eyebrows en Oswald, sin mono
 
 // ── Forma ─────────────────────────────────────────────────────────────────────
-$radius-sm: 6px;
-$radius-md: 12px;
-$radius-lg: 20px;
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 14px;
 $shadow-modal: 0 24px 64px rgba(11, 31, 51, 0.22);
 $content-width: 1080px;
 
