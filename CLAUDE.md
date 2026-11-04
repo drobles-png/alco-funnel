@@ -23,7 +23,8 @@ E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps 
 | `GHL_QUALIFICATION_WEBHOOK` | `…/lXQkJvJH1icRLPrNGYra` (cualificación) |
 | `GHL_BOOKING_CALENDAR` / `_FRAME_ID` | `widget/booking/p7YsTfZnCmrsX9EMsBRv` / `p7YsTfZnCmrsX9EMsBRv_1793804976879` |
 | `WISTIA_MEDIA_ID` | **PENDIENTE** (sin video, /ver-video muestra "se publica en breve") |
-| `ASK_CITY` | `true` |
+| `ASK_CITY` | `false` (la provincia ya se pregunta en la cualificación) |
+| `CUPOS_SEMANA` | `3` — **confirmar con ALCO**; 0 = no se muestra la píldora de cupos |
 | `SITE_URL` | `https://alco-funnel.vercel.app` (también en index.html og:url/og:image) |
 | `FUNNEL_TAG` | `funnel-alco-finca` → separa estos leads de los de alco-landing1 en GHL |
 | `STORAGE_PREFIX` | `alcf` |
@@ -43,7 +44,14 @@ Azul ALCO `#004784`, azul noche `#0B1F33`, verde cultivo `#2E9B4F`, fondo `#F2F5
 (`src/styles/tokens.scss`). Oswald (títulos en mayúsculas, eyebrows) + Open Sans (texto).
 Logos en `src/assets/logos/` (copiados de alco-landing1).
 
+## Landing
+Hero tipo funnel Bakano: logo · contador · promesa · beneficios · video · cupos · CTA · "sin costo".
+Luego: problema (línea de tiempo), oferta (modelos/Academia/respaldo), Fernando (desde 2015), cierre.
+El contador es REAL: cuenta hasta el domingo 23:59 hora de Ecuador (`src/utils/week.ts`), cuando
+cierra la agenda semanal. No se reinicia por visitante.
+
 ## No hacer
+- No inventar escasez: los cupos salen de `CUPOS_SEMANA` confirmado con ALCO; el contador no se reinicia.
 - No inventar cifras, testimonios, casos ni escasez. Copy solo con lo que dice el VSL.
 - No poner `META_CAPI_TEST_EVENT_CODE` en producción.
 

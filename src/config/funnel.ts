@@ -38,9 +38,14 @@ export const WISTIA_MEDIA_ID = ''
 // Segundos que el CTA de /ver-video queda bloqueado (0 = sin bloqueo). En localhost son 3 s.
 export const CTA_UNLOCK_SECONDS = 120
 
+// ── Escasez (REAL, no inventada) ──────────────────────────────────────────────
+// Reuniones disponibles esta semana: confirmar con ALCO y actualizar. 0 = no se muestra.
+// El contador de la landing corre hasta el domingo 23:59 (hora de Ecuador), cuando cierra la semana.
+export const CUPOS_SEMANA = 3
+
 // ── Registro ──────────────────────────────────────────────────────────────────
 // true = el formulario de registro pide ciudad (va a GHL como `ciudad`)
-export const ASK_CITY = true
+export const ASK_CITY = false // la provincia ya se pregunta en la cualificación
 // País preseleccionado del teléfono (ISO 3166 alfa-2)
 export const DEFAULT_COUNTRY = 'EC'
 

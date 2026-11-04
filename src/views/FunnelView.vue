@@ -1,20 +1,22 @@
 <script setup lang="ts">
 // Landing (/). Todo el texto sale de LANDING en src/content/copy.ts.
 // Cada botón que abre el registro lleva data-cta="registro" (lo usa el e2e).
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BrandLogo from '@/components/BrandLogo.vue'
 import RegistrationModal from '@/components/RegistrationModal.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import { IS_LOCAL, PERSON_NAME, STORAGE_PREFIX } from '@/config/funnel'
+import { CUPOS_SEMANA, IS_LOCAL, PERSON_NAME, STORAGE_PREFIX } from '@/config/funnel'
 import { LANDING } from '@/content/copy'
 import { captureFbParams } from '@/utils/fbclid'
+import { endOfWeekGye } from '@/utils/week'
 
 const route = useRoute()
 const router = useRouter()
 const modalOpen = ref(false)
 const showSticky = ref(false)
 const L = LANDING
+const scarcity = CUPOS_SEMANA > 0 ? L.scarcity(CUPOS_SEMANA) : null
 
 function openModal() {
   // Quien no calificó hace menos de 24 h vuelve a /sin-espacio
@@ -28,12 +30,27 @@ function openModal() {
   modalOpen.value = true
 }
 
+// Contador REAL hasta el cierre de la agenda de la semana (no se reinicia por visitante)
+const now = ref(Date.now())
+const left = computed(() => {
+  const s = Math.max(0, Math.floor((endOfWeekGye(now.value) - now.value) / 1000))
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return {
+    d: Math.floor(s / 86400),
+    h: pad(Math.floor(s / 3600) % 24),
+    m: pad(Math.floor(s / 60) % 60),
+    s: pad(s % 60),
+  }
+})
+let timer: number | undefined
+
 const onScroll = () => (showSticky.value = window.scrollY > 700)
 
 // Revelado suave al hacer scroll (solo si el usuario no pidió menos movimiento)
 let io: IntersectionObserver | undefined
 onMounted(() => {
   captureFbParams()
+  timer = window.setInterval(() => (now.value = Date.now()), 1000)
   window.addEventListener('scroll', onScroll, { passive: true })
   // /?editar=1 (desde "Corregir mis datos") reabre el registro con lo guardado
   if (route.query.editar) modalOpen.value = true
@@ -56,63 +73,65 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
+  window.clearInterval(timer)
   io?.disconnect()
 })
 </script>
 
 <template>
   <div class="landing">
-    <!-- HERO -->
+    <!-- HERO: logo · contador · promesa · beneficios · video · cupos · CTA · sin costo -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero__field" aria-hidden="true"></div>
-      <div class="hero__sun" aria-hidden="true"></div>
 
-      <header class="topbar wrap">
+      <header class="topbar">
         <BrandLogo light />
-        <span class="topbar__tag"><i class="fa-solid fa-circle" aria-hidden="true"></i>{{ L.topbarTag }}</span>
       </header>
-
-      <div class="wrap hero__inner">
-        <div class="hero__copy">
-          <p class="kicker">{{ L.kicker }}</p>
-          <h1 id="hero-title" class="hero__title">
-            <span>{{ L.headline }}</span>
-            <span>{{ L.headlineMid }}</span>
-            <span class="hero__accent">{{ L.headlineAccent }}</span>
-          </h1>
-          <p class="hero__sub">{{ L.sub }}</p>
-        </div>
-
-        <div class="hero__media">
-          <button type="button" class="vsl" data-cta="registro" aria-label="Ver el video completo" @click="openModal">
-            <span class="vsl__rows" aria-hidden="true"></span>
-            <span class="vsl__badge"><i class="fa-solid fa-video" aria-hidden="true"></i> Video</span>
-            <span class="vsl__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
-            <span class="vsl__caption">
-              <strong>{{ PERSON_NAME }}</strong>
-              <span>{{ L.videoCaption }}</span>
-            </span>
-          </button>
-          <div class="hero__cta">
-            <button type="button" class="btn btn--lg btn--block" data-cta="registro" @click="openModal">
-              <i class="fa-solid fa-play" aria-hidden="true"></i> {{ L.cta }}
-            </button>
-            <p class="hero__note"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ L.ctaNote }}</p>
-          </div>
-        </div>
+      <div class="countdown">
+        <span class="countdown__dot" aria-hidden="true"></span>
+        <span class="countdown__label">{{ L.countdownLabel }}</span>
+        <span class="countdown__time">
+          <template v-if="left.d">
+            <b>{{ left.d }}</b><small>d</small><i aria-hidden="true">:</i>
+          </template>
+          <b>{{ left.h }}</b><small>h</small><i aria-hidden="true">:</i>
+          <b>{{ left.m }}</b><small>m</small><i aria-hidden="true">:</i>
+          <b>{{ left.s }}</b><small>s</small>
+        </span>
       </div>
 
-      <div class="provinces">
-        <div class="wrap provinces__inner">
-          <span class="provinces__label">{{ L.provincesLabel }}</span>
-          <ul role="list">
-            <li v-for="p in L.provinces" :key="p">{{ p }}</li>
-          </ul>
-        </div>
+      <div class="wrap hero__inner">
+        <p class="kicker">{{ L.kicker }}</p>
+        <h1 id="hero-title" class="hero__title">
+          {{ L.headline }} <span class="u-sun">{{ L.headlineAccent }}</span>
+        </h1>
+        <ul class="benefits" role="list">
+          <li v-for="b in L.benefits" :key="b"><i class="fa-solid fa-check" aria-hidden="true"></i>{{ b }}</li>
+        </ul>
+
+        <button type="button" class="vsl" data-cta="registro" aria-label="Ver el video completo" @click="openModal">
+          <span class="vsl__rows" aria-hidden="true"></span>
+          <span class="vsl__ring" aria-hidden="true">
+            <span class="vsl__play"><i class="fa-solid fa-play"></i></span>
+          </span>
+          <span class="vsl__caption">
+            <strong>{{ PERSON_NAME }}</strong>
+            <span>{{ L.videoCaption }}</span>
+          </span>
+        </button>
+
+        <p v-if="scarcity" class="scarcity">
+          <span class="scarcity__dot" aria-hidden="true"></span>
+          <span>{{ scarcity.pre }} <strong>{{ scarcity.n }}</strong> {{ scarcity.post }}</span>
+        </p>
+        <button type="button" class="btn btn--lg btn--cta" data-cta="registro" @click="openModal">
+          <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> {{ L.cta }}
+        </button>
+        <p class="note"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ L.ctaNote }}</p>
       </div>
     </section>
 
-    <!-- EL RELOJ: el problema como línea de tiempo -->
+    <!-- EL PROBLEMA: línea de tiempo -->
     <section class="clock" aria-labelledby="clock-title">
       <div class="wrap">
         <div class="head reveal">
@@ -142,43 +161,11 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <!-- COMPARACIÓN -->
-    <section class="compare" aria-labelledby="compare-title">
-      <div class="wrap">
-        <div class="head reveal">
-          <p class="eyebrow">{{ L.compare.eyebrow }}</p>
-          <h2 id="compare-title" class="title">
-            {{ L.compare.title }} <span class="u-blue">{{ L.compare.titleAccent }}</span>
-          </h2>
-        </div>
-
-        <div class="versus reveal">
-          <div class="versus__col versus__col--them">
-            <p class="versus__head"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> {{ L.compare.them }}</p>
-            <ul role="list">
-              <li v-for="r in L.compare.rows" :key="r.them">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i>{{ r.them }}
-              </li>
-            </ul>
-          </div>
-          <div class="versus__col versus__col--us">
-            <p class="versus__head"><i class="fa-solid fa-helicopter" aria-hidden="true"></i> {{ L.compare.us }}</p>
-            <ul role="list">
-              <li v-for="r in L.compare.rows" :key="r.us">
-                <i class="fa-solid fa-check" aria-hidden="true"></i>{{ r.us }}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- OFERTA -->
     <section class="offer" aria-labelledby="offer-title">
       <div class="offer__field" aria-hidden="true"></div>
       <div class="wrap">
-        <div class="head head--light reveal">
-          <p class="eyebrow eyebrow--sun">{{ L.offer.eyebrow }}</p>
+        <div class="head reveal">
           <h2 id="offer-title" class="title">
             {{ L.offer.title }} <span class="u-sun">{{ L.offer.titleAccent }}</span>
           </h2>
@@ -209,50 +196,26 @@ onBeforeUnmount(() => {
             </ul>
           </article>
         </div>
-
-        <div class="center">
-          <button type="button" class="btn btn--lg" data-cta="registro" @click="openModal">
-            {{ L.offer.cta }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </button>
-        </div>
       </div>
     </section>
 
-    <!-- AUTORIDAD -->
-    <section class="authority" aria-label="Sobre ALCO">
-      <div class="wrap authority__inner reveal">
-        <div class="authority__year">
-          <span class="authority__label">{{ L.authority.yearLabel }}</span>
-          <strong>{{ L.authority.year }}</strong>
+    <!-- QUIÉN TE LO CUENTA -->
+    <section class="mentor" aria-labelledby="mentor-title">
+      <div class="wrap mentor__inner reveal">
+        <div class="mentor__card">
+          <span class="mentor__label">{{ L.mentor.yearLabel }}</span>
+          <strong>{{ L.mentor.year }}</strong>
         </div>
-        <div class="authority__body">
-          <p>{{ L.authority.text }}</p>
-          <p class="authority__promise">{{ L.authority.promise }}</p>
-          <figure class="authority__quote">
-            <blockquote>“{{ L.authority.quote }}”</blockquote>
-            <figcaption>{{ L.authority.quoteBy }}</figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ¿ES PARA TI? -->
-    <section class="fit" aria-labelledby="fit-title">
-      <div class="wrap fit__inner reveal">
         <div>
-          <p class="eyebrow">{{ L.fit.eyebrow }}</p>
-          <h2 id="fit-title" class="title">{{ L.fit.title }}</h2>
+          <p class="eyebrow">{{ L.mentor.eyebrow }}</p>
+          <h2 id="mentor-title" class="mentor__name">{{ L.mentor.name }}</h2>
+          <p class="mentor__role">{{ L.mentor.role }}</p>
+          <ul class="mentor__points" role="list">
+            <li v-for="p in L.mentor.points" :key="p">
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ p }}
+            </li>
+          </ul>
         </div>
-        <ul class="fit__list" role="list">
-          <li v-for="y in L.fit.yes" :key="y" class="fit__yes">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            <span><span class="sr-only">Sí es para ti: </span>{{ y }}</span>
-          </li>
-          <li class="fit__no">
-            <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-            <span><span class="sr-only">No es para ti: </span>{{ L.fit.no }}</span>
-          </li>
-        </ul>
       </div>
     </section>
 
@@ -260,19 +223,18 @@ onBeforeUnmount(() => {
     <section class="closing" aria-labelledby="closing-title">
       <div class="hero__field hero__field--closing" aria-hidden="true"></div>
       <div class="wrap closing__inner reveal">
-        <p class="eyebrow eyebrow--sun">{{ L.closing.eyebrow }}</p>
         <h2 id="closing-title" class="closing__title">
           {{ L.closing.title }} <span class="u-sun">{{ L.closing.titleAccent }}</span>
         </h2>
         <p class="closing__sub">{{ L.closing.sub }}</p>
-        <ul class="agenda" role="list" aria-label="Lo que vemos en la reunión">
-          <li v-for="a in L.closing.agenda" :key="a.text">
-            <i :class="['fa-solid', a.icon]" aria-hidden="true"></i>{{ a.text }}
-          </li>
-        </ul>
-        <button type="button" class="btn btn--lg" data-cta="registro" @click="openModal">
-          <i class="fa-solid fa-play" aria-hidden="true"></i> {{ L.closing.cta }}
+        <p v-if="scarcity" class="scarcity">
+          <span class="scarcity__dot" aria-hidden="true"></span>
+          <span>{{ scarcity.pre }} <strong>{{ scarcity.n }}</strong> {{ scarcity.post }}</span>
+        </p>
+        <button type="button" class="btn btn--lg btn--cta" data-cta="registro" @click="openModal">
+          <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> {{ L.cta }}
         </button>
+        <p class="note"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ L.ctaNote }}</p>
       </div>
     </section>
 
@@ -348,143 +310,147 @@ $night: $surface-dark;
   pointer-events: none;
 }
 
-// ── Hero ─────────────────────────────────────────────────────────────────────
+
+// ── Hero (centrado, estructura de funnel) ────────────────────────────────────
 .hero {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(120% 70% at 85% 0%, rgba($primary, 0.75), transparent 60%),
+    radial-gradient(90% 55% at 50% 30%, rgba($primary, 0.55), transparent 70%),
     linear-gradient(180deg, $night 0%, #0e2a45 100%);
   color: $ink-on-dark;
+  text-align: center;
 
   &__field {
-    @include field-rows(0.28);
+    @include field-rows(0.22);
 
     &--closing {
       height: 70%;
     }
   }
 
-  &__sun {
-    position: absolute;
-    top: -140px;
-    right: -120px;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba($sun, 0.35), transparent 65%);
-    pointer-events: none;
-  }
-
   &__inner {
     position: relative;
-    display: grid;
-    gap: 32px;
-    padding-top: 24px;
-    padding-bottom: 48px;
-
-    @media (min-width: 960px) {
-      grid-template-columns: 1.05fr 1fr;
-      align-items: center;
-      gap: 56px;
-      padding-top: 48px;
-      padding-bottom: 80px;
-    }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 860px;
+    padding-top: 36px;
+    padding-bottom: 64px;
   }
 
   &__title {
-    margin-top: 14px;
-    font-size: clamp(2.6rem, 9.5vw, 4.9rem);
-    line-height: 0.95;
-
-    span {
-      display: block;
-    }
-  }
-
-  &__accent {
-    margin-top: 10px;
-    color: $sun;
-    font-size: 0.62em;
-    line-height: 1.05;
-  }
-
-  &__sub {
-    max-width: 52ch;
-    margin-top: 20px;
-    color: $ink-on-dark-muted;
-    font-size: 1.05rem;
-    line-height: 1.6;
-  }
-
-  &__cta {
-    margin-top: 18px;
-  }
-
-  &__note {
-    margin-top: 10px;
-    color: $ink-on-dark-muted;
-    font-size: 0.85rem;
-    text-align: center;
-
-    i {
-      margin-right: 4px;
-    }
+    max-width: 18ch;
+    margin-top: 16px;
+    font-size: clamp(2.3rem, 8vw, 4.1rem);
+    line-height: 1;
   }
 }
 
 .topbar {
   position: relative;
-  z-index: 2;
   display: flex;
+  justify-content: center;
+  padding: 20px 16px;
+
+  :deep(.logo) {
+    height: 32px;
+  }
+}
+
+// Barra del contador (real: cierre de la agenda semanal)
+.countdown {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 18px;
-  padding-bottom: 18px;
+  justify-content: center;
+  gap: 6px 12px;
+  padding: 12px 16px;
+  border-block: 1px solid rgba($sun, 0.25);
+  background: linear-gradient(90deg, rgba($sun, 0.04), rgba($sun, 0.12), rgba($sun, 0.04));
 
-  &__tag {
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $sun;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  &__label {
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  &__time {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border: 1px solid rgba(#fff, 0.18);
-    border-radius: 999px;
-    @include eyebrow;
-    color: $ink-on-dark;
+    align-items: baseline;
+    gap: 2px;
+    font-variant-numeric: tabular-nums;
 
+    b {
+      font-family: $font-display;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: $sun;
+    }
+    small {
+      margin-left: 1px;
+      color: $ink-on-dark-muted;
+      font-size: 0.75rem;
+    }
     i {
-      font-size: 0.45rem;
-      color: $leaf-bright;
-      animation: pulse 2s ease-in-out infinite;
+      margin: 0 5px;
+      color: $ink-on-dark-muted;
+      font-style: normal;
     }
   }
 }
 
 .kicker {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba($sun, 0.14);
-  color: $sun !important;
   @include eyebrow;
-  color: $ink-on-dark;
+  color: $sun;
 }
 
-// Tarjeta del VSL: pantalla con surcos y botón de play amarillo
+.benefits {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.95rem;
+    color: $ink-on-dark;
+  }
+
+  i {
+    color: $leaf-bright;
+    font-size: 0.85rem;
+  }
+}
+
+// Póster del VSL: pantalla con surcos y aro de play
 .vsl {
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
+  margin-top: 32px;
   overflow: hidden;
   padding: 0;
-  border: 1px solid rgba(#fff, 0.16);
+  border: 1px solid rgba($sun, 0.3);
   border-radius: $radius-lg;
   background:
-    radial-gradient(80% 90% at 70% 20%, rgba($primary, 0.9), transparent 70%),
+    radial-gradient(70% 80% at 50% 35%, rgba($primary, 0.85), transparent 75%),
     linear-gradient(160deg, #123a5e, $night);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
   color: #fff;
   cursor: pointer;
   text-align: left;
@@ -494,45 +460,45 @@ $night: $surface-dark;
     height: 70%;
   }
 
-  &__badge {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba($night, 0.7);
-    @include eyebrow;
-    font-size: 0.7rem;
-  }
-
-  &__play {
+  &__ring {
     position: absolute;
     top: 50%;
     left: 50%;
     display: grid;
     place-items: center;
-    width: 84px;
-    height: 84px;
+    width: clamp(110px, 26vw, 170px);
+    aspect-ratio: 1;
+    border: 2px solid rgba(#fff, 0.45);
+    border-radius: 50%;
+    background: rgba(#fff, 0.06);
+    backdrop-filter: blur(3px);
+    transform: translate(-50%, -50%);
+    transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  &__play {
+    display: grid;
+    place-items: center;
+    width: 46%;
+    aspect-ratio: 1;
     border-radius: 50%;
     background: $sun;
     color: $ink;
-    font-size: 1.6rem;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 0 12px rgba($sun, 0.22);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: clamp(1.2rem, 4vw, 1.7rem);
+    box-shadow: 0 8px 24px rgba($sun, 0.45);
 
     i {
-      margin-left: 5px;
+      margin-left: 4px;
     }
   }
 
-  &:hover &__play {
-    transform: translate(-50%, -50%) scale(1.06);
-    box-shadow: 0 0 0 18px rgba($sun, 0.18);
+  &:hover &__ring {
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
   &:focus-visible {
-    @include focus-ring;
+    outline: 2px solid $sun;
+    outline-offset: 3px;
   }
 
   &__caption {
@@ -556,51 +522,128 @@ $night: $surface-dark;
   }
 }
 
-.provinces {
-  position: relative;
-  border-top: 1px solid rgba(#fff, 0.1);
-  background: rgba($night, 0.85);
+// Píldora de cupos + CTA + nota (hero y cierre)
+.scarcity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 8px 14px;
+  border: 1px solid rgba($sun, 0.35);
+  border-radius: 999px;
+  background: rgba($sun, 0.08);
+  font-size: 0.92rem;
+
+  strong {
+    color: $sun;
+  }
+
+  &__dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $sun;
+    box-shadow: 0 0 0 4px rgba($sun, 0.2);
+  }
+}
+
+.btn--cta {
+  width: 100%;
+  max-width: 460px;
+  margin-top: 18px;
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+}
+
+.note {
+  margin-top: 12px;
+  color: $ink-on-dark-muted;
+  font-size: 0.85rem;
+
+  i {
+    margin-right: 4px;
+  }
+}
+
+// ── Quién te lo cuenta ───────────────────────────────────────────────────────
+.mentor {
+  padding: 88px 0;
+  background: $raised;
 
   &__inner {
+    display: grid;
+    gap: 32px;
+
+    @media (min-width: 860px) {
+      grid-template-columns: 300px 1fr;
+      align-items: center;
+      gap: 56px;
+    }
+  }
+
+  &__card {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 8px 20px;
-    padding-top: 14px;
-    padding-bottom: 14px;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+
+    @media (min-width: 860px) {
+      aspect-ratio: 4 / 3;
+    }
+
+    border-radius: $radius-lg;
+    background:
+      repeating-linear-gradient(90deg, rgba(#fff, 0.06) 0 1px, transparent 1px 28px),
+      linear-gradient(160deg, $primary, $night);
+    color: #fff;
+
+    strong {
+      font-family: $font-display;
+      font-size: clamp(4.5rem, 18vw, 6.5rem);
+      font-weight: 600;
+      line-height: 0.85;
+      color: $sun;
+    }
   }
 
   &__label {
+    margin-bottom: 8px;
     color: $ink-on-dark-muted;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px 18px;
-    margin: 0;
+  &__name {
+    margin-top: 10px;
+    font-size: clamp(2.2rem, 6vw, 3rem);
+  }
+
+  &__role {
+    margin-top: 4px;
+    @include eyebrow;
+    color: $primary;
+  }
+
+  &__points {
+    display: grid;
+    gap: 12px;
+    margin: 22px 0 0;
     padding: 0;
     list-style: none;
-  }
 
-  li {
-    font-family: $font-display;
-    font-size: 1rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    li {
+      display: flex;
+      gap: 12px;
+      line-height: 1.55;
+    }
 
-    &:not(:last-child)::after {
-      content: '';
-      display: inline-block;
-      width: 5px;
-      height: 5px;
-      margin-left: 18px;
-      border-radius: 50%;
-      background: $sun;
-      vertical-align: middle;
+    i {
+      flex: none;
+      margin-top: 4px;
+      color: $leaf;
     }
   }
 }
@@ -749,86 +792,6 @@ $night: $surface-dark;
   }
 }
 
-// ── Comparación ──────────────────────────────────────────────────────────────
-.compare {
-  padding: 88px 0;
-  background: $surface;
-}
-
-.versus {
-  display: grid;
-  gap: 16px;
-
-  @media (min-width: 860px) {
-    grid-template-columns: 1fr 1.15fr;
-    gap: 0;
-  }
-
-  &__col {
-    padding: 28px 24px;
-    border-radius: $radius-lg;
-
-    ul {
-      display: grid;
-      gap: 14px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    li {
-      display: flex;
-      gap: 12px;
-      line-height: 1.5;
-
-      i {
-        flex: none;
-        margin-top: 4px;
-      }
-    }
-
-    &--them {
-      border: 1px solid $line;
-      background: $raised;
-      color: $ink-muted;
-
-      i {
-        color: $error;
-      }
-
-      @media (min-width: 860px) {
-        margin: 24px 0;
-        border-right: 0;
-        border-radius: $radius-lg 0 0 $radius-lg;
-      }
-    }
-
-    &--us {
-      background: $primary;
-      color: #fff;
-      box-shadow: 0 24px 48px rgba($primary, 0.3);
-
-      i {
-        color: $sun;
-      }
-      li {
-        font-weight: 600;
-      }
-    }
-  }
-
-  &__head {
-    margin-bottom: 20px;
-    font-family: $font-display;
-    font-size: 1.3rem;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-
-    .versus__col--us & {
-      color: $sun;
-    }
-  }
-}
 
 // ── Oferta (bento) ───────────────────────────────────────────────────────────
 .offer {
@@ -896,9 +859,9 @@ $night: $surface-dark;
     padding-top: 16px;
     border-top: 1px solid rgba($ink, 0.2);
     font-family: $font-display;
-    font-size: 1.15rem;
-    line-height: 1.3;
-    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1.25;
   }
 
   &--models {
@@ -978,133 +941,6 @@ $night: $surface-dark;
   }
 }
 
-// ── Autoridad ────────────────────────────────────────────────────────────────
-.authority {
-  padding: 88px 0;
-  background: $raised;
-
-  &__inner {
-    display: grid;
-    gap: 32px;
-
-    @media (min-width: 860px) {
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 64px;
-    }
-  }
-
-  &__year {
-    display: flex;
-    flex-direction: column;
-
-    strong {
-      font-family: $font-display;
-      font-size: clamp(6rem, 22vw, 11rem);
-      font-weight: 600;
-      line-height: 0.85;
-      color: $primary;
-    }
-  }
-
-  &__label {
-    max-width: 22ch;
-    margin-bottom: 10px;
-    @include eyebrow;
-    color: $ink-muted;
-  }
-
-  &__body {
-    font-size: 1.1rem;
-    line-height: 1.6;
-
-    p + p {
-      margin-top: 12px;
-    }
-  }
-
-  &__promise {
-    font-weight: 600;
-  }
-
-  &__quote {
-    margin: 28px 0 0;
-    padding: 20px 22px;
-    border-radius: $radius-lg;
-    background: $primary-soft;
-
-    blockquote {
-      margin: 0;
-      font-family: $font-display;
-      font-size: 1.5rem;
-      line-height: 1.2;
-      text-transform: uppercase;
-      color: $primary;
-    }
-
-    figcaption {
-      margin-top: 6px;
-      color: $ink-muted;
-      font-size: 0.85rem;
-    }
-  }
-}
-
-// ── ¿Es para ti? ─────────────────────────────────────────────────────────────
-.fit {
-  padding: 80px 0;
-  border-top: 1px solid $line;
-  background: $surface;
-
-  &__inner {
-    display: grid;
-    gap: 28px;
-
-    @media (min-width: 860px) {
-      grid-template-columns: 1fr 1.6fr;
-      gap: 56px;
-    }
-  }
-
-  &__list {
-    display: grid;
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    li {
-      display: flex;
-      gap: 14px;
-      padding: 16px 18px;
-      border-radius: $radius-md;
-      line-height: 1.5;
-
-      i {
-        flex: none;
-        margin-top: 3px;
-        font-size: 1.15rem;
-      }
-    }
-  }
-
-  &__yes {
-    border: 1px solid $line;
-    background: $raised;
-
-    i {
-      color: $leaf;
-    }
-  }
-
-  &__no {
-    color: $ink-muted;
-
-    i {
-      color: $error;
-    }
-  }
-}
 
 // ── Cierre ───────────────────────────────────────────────────────────────────
 .closing {
@@ -1140,30 +976,6 @@ $night: $surface-dark;
   }
 }
 
-.agenda {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin: 28px 0 32px;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border: 1px solid rgba(#fff, 0.18);
-    border-radius: 999px;
-    background: rgba($night, 0.6);
-    font-weight: 600;
-
-    i {
-      color: $sun;
-    }
-  }
-}
 
 // ── CTA fijo (solo celular) ──────────────────────────────────────────────────
 .sticky {
@@ -1237,7 +1049,7 @@ $night: $surface-dark;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .topbar__tag i {
+  .countdown__dot {
     animation: none;
   }
 }

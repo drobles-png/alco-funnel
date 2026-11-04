@@ -36,7 +36,7 @@ withDefaults(defineProps<{ step?: string; wide?: boolean }>(), { step: '', wide:
     background:
       repeating-linear-gradient(90deg, rgba($leaf-bright, 0.12) 0 1px, transparent 1px 40px),
       linear-gradient(180deg, $surface-dark, #0e2a45);
-    border-bottom: 3px solid $sun;
+    border-bottom: 1px solid rgba($sun, 0.5);
   }
 
   &__home {

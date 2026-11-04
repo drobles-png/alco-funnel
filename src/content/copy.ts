@@ -21,19 +21,21 @@ export const SEO = {
 // ── Landing (/) ───────────────────────────────────────────────────────────────
 // Todo sale del guion del VSL de Fernando Alvear. No agregar cifras ni testimonios inventados.
 export const LANDING = {
-  topbarTag: 'DJI Agras · en stock',
-  kicker: 'Para agricultores de la Costa',
-  headline: 'Deja de esperar',
-  headlineMid: 'al fumigador.',
-  headlineAccent: 'Fumiga el día que tú decides.',
-  sub: 'El cultivo está listo, llamas al que te presta el servicio y no contesta, te cambia la fecha o llega cuando ya es tarde. Fernando Alvear te cuenta cómo muchos agricultores de la Costa dejaron de pasar por eso.',
-  videoCaption: `${BRAND_NAME} · Desde 2015`,
-  cta: 'Ver el video completo',
-  ctaNote: 'Sin costo · Solo te pedimos tus datos para mostrártelo',
-  provinces: ['Guayas', 'Los Ríos', 'El Oro', 'Manabí'],
-  provincesLabel: 'Trabajamos con agricultores de',
+  countdownLabel: 'Los cupos de esta semana cierran en',
+  kicker: 'Para agricultores de Guayas, Los Ríos, El Oro y Manabí',
+  headline: 'Deja de esperar al fumigador.',
+  headlineAccent: 'Fumiga tu finca el día que tú decides.',
+  benefits: [
+    'Sin pedirle favor a nadie',
+    'Sabes qué producto y dosis aplicas',
+    'Sin pisar tu plantación',
+    'DJI Agras en stock',
+  ],
+  videoCaption: `${BRAND_NAME} · Drones de fumigación desde 2015`,
+  scarcity: (n: number) => ({ pre: 'Quedan', n: `${n} ${n === 1 ? 'cupo' : 'cupos'}`, post: 'de reunión esta semana' }),
+  cta: 'Ver el video y agendar',
+  ctaNote: 'Sin costo · Reuniones sujetas a calificación',
 
-  // El problema contado como una línea de tiempo (VSL, bloque 3)
   clock: {
     eyebrow: 'El problema',
     title: 'En el agro, el momento',
@@ -47,36 +49,19 @@ export const LANDING = {
     ],
     season: {
       title: 'En temporada es peor',
-      text: 'Todos necesitan fumigar al mismo tiempo. Con El Niño vienen más lluvia y más presión de sigatoca, y los que prestan servicio no van a dar abasto. El primero que queda esperando es el agricultor pequeño o mediano.',
+      text: 'Todos necesitan fumigar al mismo tiempo. Con El Niño vienen más lluvia y más presión de sigatoca, y los que prestan servicio no van a dar abasto.',
     },
   },
 
-  // Servicio externo vs. dron propio (VSL, bloque 4)
-  compare: {
-    eyebrow: 'Por eso',
-    title: 'Cada vez más fincas de 30, 50 o 100 ha',
-    titleAccent: 'compran su propio dron',
-    them: 'Dependiendo de otros',
-    us: 'Con tu propio dron',
-    rows: [
-      { them: 'Fumigas cuando el otro puede venir', us: 'Fumigas el día que tú decides, sin pedirle favor a nadie' },
-      { them: 'Confías en el producto y la dosis que el otro decida', us: 'Sabes exactamente qué producto y qué dosis se aplicaron' },
-      { them: 'Esperas tu turno cuando todos necesitan fumigar', us: 'Cubres tus hectáreas en mucho menos tiempo' },
-      { them: 'Equipos y cuadrillas que entran al cultivo', us: 'Sin pisar la plantación y sin exponer a tu gente a los insumos' },
-      { them: 'Cada fumigada es un pago que se va', us: 'Lo que pagabas por el servicio se queda en tu finca' },
-    ],
-  },
-
-  // Lo que pone ALCO (VSL, bloque 5)
   offer: {
-    eyebrow: 'Con ALCO',
+    eyebrow: 'Con tu propio dron y ALCO',
     title: 'El equipo, el criterio',
     titleAccent: 'y el respaldo',
     models: ['T55', 'T70P', 'T100'],
     modelsTitle: 'DJI Agras en stock',
     modelsText: 'Listos para salir a tu finca. No vas a tener que esperar meses cuando ya estás en temporada.',
     academy: {
-      tag: 'Academia EAD · si tú lo decides',
+      tag: 'Academia EAD (Escuela de Agrodrones)',
       title: 'No solo aprendes a volar el dron',
       text: 'Aprendes manejo agronómico: qué producto aplicar, a qué altura, a qué hora y en qué cultivo.',
       quote: 'El dron es la herramienta, pero lo que cuida tu plantación es el criterio.',
@@ -89,44 +74,28 @@ export const LANDING = {
         { icon: 'fa-car-battery', text: 'Equipo de respaldo: generadores y cargadores' },
       ],
     },
-    cta: 'Quiero ver el video',
   },
 
-  // Autoridad (VSL, bloque 2 + atención)
-  authority: {
+  mentor: {
+    eyebrow: 'Quién te lo cuenta',
+    name: 'Fernando Alvear',
+    role: 'ALCO · Drones de fumigación',
     year: '2015',
-    yearLabel: 'Trabajamos con drones de fumigación desde',
-    text: 'Fuimos de los pioneros en traerlos al país. Lo que Fernando te cuenta en el video es lo que vemos todos los días en el campo.',
-    promise: 'Desde que compras tu dron hasta cada temporada que viene, estamos contigo.',
-    quote: 'Ustedes sí me han ayudado con soluciones',
-    quoteBy: 'Lo que más nos dicen nuestros clientes',
-  },
-
-  fit: {
-    eyebrow: 'Antes de seguir',
-    title: '¿Es para ti?',
-    yes: [
-      'Tienes tu finca andando y ya sabes lo que es sacar una cosecha.',
-      'Hoy dependes de que otro llegue a fumigar a tiempo.',
-      'Quieres que tu finca produzca más y dependa menos de otros.',
+    yearLabel: 'Trabajando con drones de fumigación desde',
+    points: [
+      'Fuimos de los pioneros en traer drones de fumigación al país.',
+      'Trabajamos con agricultores de Guayas, Los Ríos, El Oro y Manabí.',
+      'Desde que compras tu dron hasta cada temporada que viene, estamos contigo.',
     ],
-    no: 'No tienes finca o solo buscas contratar un servicio de fumigación.',
   },
 
   closing: {
-    eyebrow: 'Siguiente paso',
     title: 'Tu cosecha no puede seguir',
     titleAccent: 'esperando al fumigador',
-    sub: 'Mira el video y agendemos una reunión para conocer tu caso.',
-    agenda: [
-      { icon: 'fa-seedling', text: 'Tu cultivo' },
-      { icon: 'fa-ruler-combined', text: 'Tus hectáreas' },
-      { icon: 'fa-spray-can-sparkles', text: 'Cómo fumigas hoy' },
-    ],
-    cta: 'Ver el video completo',
+    sub: 'Mira el video y agendemos una reunión para conocer tu caso: tu cultivo, tus hectáreas y cómo fumigas hoy.',
   },
 
-  sticky: { title: 'Tu propio dron de fumigación', sub: 'Video de Fernando Alvear', cta: 'Ver video' },
+  sticky: { title: 'Dron propio', sub: 'Video de Fernando Alvear', cta: 'Ver video' },
   disclaimer:
     'DJI y Agras son marcas de sus respectivos dueños. Los resultados dependen de cada finca y cultivo. Este sitio no está respaldado por Meta Platforms, Inc. ni forma parte de Facebook.',
 }
