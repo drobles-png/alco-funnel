@@ -1,0 +1,22 @@
+[
+  {"goto": "/?fbclid=TEST_e2e&utm_source=facebook&utm_medium=paid&utm_campaign=TEST-e2e&utm_content=anuncio-test"},
+  {"click": "[data-cta=registro]"},
+  {"fill": {"[data-field=nombre]": "Test Bakano", "[data-field=apellido]": "Prueba Califica", "[data-field=email]": "prueba.califica@bakano-test.com", "[data-field=phone]": "0991112233", "[data-field=ciudad]": "Babahoyo"}},
+  {"click": "form [type=submit]"},
+  {"wait_url": "**/ver-video"},
+  {"shot": "ver-video"},
+  {"click": "[data-cta=calificar]"},
+  {"click": "label:has(input[value=propia_produccion])"},
+  {"click": "label:has(input[value=banano])"},
+  {"click": "label:has(input[value=ha_50_100])"},
+  {"click": "label:has(input[value=servicio_externo])"},
+  {"click": "label:has(input[value=los_rios])"},
+  {"click": "label:has(input[value=financiamiento])"},
+  {"fill": {"[data-field=objetivo]": "El que me presta el servicio me cambia la fecha y en temporada llega tarde a fumigar"}},
+  {"click": "[data-field=consent]"},
+  {"click": "form [type=submit]"},
+  {"wait_url": "**/agendar"},
+  {"booking_complete": true},
+  {"wait_url": "**/cita-confirmada"},
+  {"shot": "final"}
+]

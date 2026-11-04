@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" prefix="og: https://ogp.me/ns#">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Título y descripción por ruta: los pone el router (src/content/copy.ts → SEO).
+         Estos son los valores de la carga inicial (lo que leen los bots sin JS). -->
+    <title>ALCO | Fumiga tu finca con tu propio dron, el día que tú decides</title>
+    <meta name="description" content="Para agricultores de la Costa que dependen de un servicio externo para fumigar. Drones DJI Agras en stock, capacitación y respaldo de ALCO." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#004784" />
+
+    <!-- Meta Pixel: lo inyecta vite.config.ts (plugin metaPixel) con META_PIXEL_ID de
+         src/config/funnel.ts. Vacío = sin pixel. No carga en localhost. -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Oswald:wght@500;600&display=swap"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Open Graph. og:image debe ser una URL ABSOLUTA del dominio final (1200x630). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_EC" />
+    <meta property="og:site_name" content="ALCO" />
+    <meta property="og:title" content="ALCO | Fumiga tu finca con tu propio dron, el día que tú decides" />
+    <meta property="og:description" content="Para agricultores de la Costa que dependen de un servicio externo para fumigar. Drones DJI Agras en stock, capacitación y respaldo de ALCO." />
+    <meta property="og:image" content="https://alco-funnel.vercel.app/og-image.png" />
+    <meta property="og:url" content="https://alco-funnel.vercel.app/" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
