@@ -1,6 +1,6 @@
-// Autochequeo de endOfWeekGye: `node src/utils/week.check.ts` (Node 22.6+)
+// Autochequeo de endOfWeekGye: `node e2e/week.check.ts` (Node 22.6+)
 import assert from 'node:assert'
-import { endOfWeekGye } from './week.ts'
+import { endOfWeekGye } from '../src/utils/week.ts'
 
 const iso = (ms: number) => new Date(ms).toISOString()
 // Miércoles 4 nov 2026 10:00 Ecuador (15:00 UTC) → domingo 8 nov 23:59:59 Ecuador (9 nov 04:59:59 UTC)
