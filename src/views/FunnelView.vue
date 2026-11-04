@@ -463,9 +463,10 @@ $night: $surface-dark;
 
 .kicker {
   display: inline-block;
-  padding: 6px 10px;
-  border-left: 3px solid $sun;
-  background: rgba(#fff, 0.06);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba($sun, 0.14);
+  color: $sun !important;
   @include eyebrow;
   color: $ink-on-dark;
 }
@@ -640,11 +641,24 @@ $night: $surface-dark;
 .tick {
   position: relative;
   padding: 0 0 28px 30px;
-  border-left: 3px solid $primary;
+
+  // Riel vertical en celular (en desktop lo dibuja .timeline::before)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -2px;
+    width: 3px;
+    background: var(--rail, #{$primary});
+  }
 
   @media (min-width: 860px) {
     padding: 22px 0 0;
-    border-left: 0;
+
+    &::before {
+      display: none;
+    }
   }
 
   &__dot {
@@ -685,7 +699,7 @@ $night: $surface-dark;
   }
 
   &--warn {
-    border-left-color: $error;
+    --rail: #{$error};
 
     .tick__dot {
       background: $error;
@@ -697,8 +711,8 @@ $night: $surface-dark;
     }
   }
 
-  &:last-child {
-    border-left-color: transparent;
+  &:last-child::before {
+    display: none;
   }
 }
 
@@ -879,8 +893,8 @@ $night: $surface-dark;
 
   &__quote {
     margin: 20px 0 0;
-    padding-left: 14px;
-    border-left: 3px solid $primary;
+    padding-top: 16px;
+    border-top: 1px solid rgba($ink, 0.2);
     font-family: $font-display;
     font-size: 1.15rem;
     line-height: 1.3;
