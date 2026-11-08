@@ -1,6 +1,6 @@
 # ALCO — Funnel VSL "Tu propio dron de fumigación" (alco-funnel)
 
-Segunda landing de **ALCO** (drones DJI Agras desde 2015, Ecuador). La primera (`../alco-landing1`,
+Segunda landing de **ALCO** (drones DJI Agras desde 2015, Ecuador). La primera (`../2-alco-landing`,
 `alco-landing.vercel.app`) vende el negocio de fumigar para terceros; **esta** le habla al
 **agricultor con finca (30–100 ha)** que hoy depende de un servicio externo para fumigar y lo invita a
 comprar su propio dron. Vocero del VSL: **Fernando Alvear**. CTA: agendar reunión (cultivo, hectáreas,
