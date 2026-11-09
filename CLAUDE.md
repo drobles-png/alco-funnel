@@ -28,7 +28,7 @@ E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps 
 | `GHL_BOOKING_CALENDAR` / `_FRAME_ID` | `widget/booking/p7YsTfZnCmrsX9EMsBRv` / `p7YsTfZnCmrsX9EMsBRv_1793804976879` |
 | `WISTIA_MEDIA_ID` | **PENDIENTE** (sin video, /ver-video muestra "se publica en breve") |
 | `ASK_CITY` | `false` (la provincia ya se pregunta en la cualificación) |
-| `CUPOS_SEMANA` | `3` — **confirmar con ALCO**; 0 = no se muestra la píldora de cupos |
+| `CUPOS_SEMANA` | `0`: ALCO atiende ~100 reuniones/semana, así que no se muestra la píldora de cupos |
 | `SITE_URL` | `https://alco-funnel.vercel.app` (también en index.html og:url/og:image) |
 | `FUNNEL_TAG` | `funnel-alco-finca` → separa estos leads de los de alco-landing1 en GHL |
 | `STORAGE_PREFIX` | `alcf` |

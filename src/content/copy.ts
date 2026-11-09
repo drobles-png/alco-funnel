@@ -21,7 +21,7 @@ export const SEO = {
 // ── Landing (/) ───────────────────────────────────────────────────────────────
 // Todo sale del guion del VSL de Fernando Alvear. No agregar cifras ni testimonios inventados.
 export const LANDING = {
-  countdownLabel: 'Los cupos de esta semana cierran en',
+  countdownLabel: 'La agenda de esta semana cierra en',
   kicker: 'Para agricultores de Guayas, Los Ríos, El Oro y Manabí',
   headline: 'Deja de esperar al fumigador.',
   headlineAccent: 'Fumiga tu finca el día que tú decides.',
