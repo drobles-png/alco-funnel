@@ -62,4 +62,4 @@ cierra la agenda semanal. No se reinicia por visitante.
 ## Pendientes
 - ID de Wistia del VSL.
 - Datos legales de ALCO.
-- Mapear en GHL los campos de cualificación (`*_label`) y verificar los triggers con contactos de prueba.
+- Terminar los workflows de GHL según `docs/GHL-WORKFLOWS.md` (sin campos personalizados: las respuestas van en la nota) y probarlos con contactos de prueba.

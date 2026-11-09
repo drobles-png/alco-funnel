@@ -29,41 +29,15 @@ etapas `pago-iniciado` y `pagado` nunca llegan.
    desduplicación de contactos. Apaga "Permitir la duplicación de contactos" y que busque primero
    por **Email** y luego por **Teléfono**. Sin esto, el registro, la cualificación y la cita crean
    3 contactos distintos.
-2. **Campos personalizados.** Se crean en el objeto Contacto, dentro de la carpeta
-   **"Funnel ALCO finca"**. Solo van los datos que GHL tiene que **usar** (para filtrar, armar
-   listas o reportes, o pasarlos a otra acción). Lo que solo sirve para leer ya viene en la
-   **nota** de cada envío: origen (fbclid y UTMs), hora y event_id.
+2. **Campos: no se crean campos personalizados.** Todo lo que manda la landing (respuestas de la
+   cualificación, origen del anuncio con fbclid y UTMs, hora, event_id) ya llega en la **nota** de
+   cada envío, y el asesor lo lee ahí. En "Crear contacto" solo se mapean los datos de contacto y el
+   **FB clid**, que ya es un campo estándar de GHL. El FB clid se guarda porque lo usa el workflow de
+   venta cerrada → Meta (sección 4).
 
-   | Campo personalizado | Tipo | Se llena con `{{inboundWebhookRequest.…}}` | Workflow |
-   |---|---|---|---|
-   | UTM Source · UTM Campaign · UTM Content | Una línea c/u | `utm_source` · `utm_campaign` · `utm_content` | contacto |
-   | Finca | Una línea | `finca_label` | cualificación |
-   | Cultivo | Una línea | `cultivo_label` | cualificación |
-   | Hectáreas | Una línea | `hectareas_label` | cualificación |
-   | Cómo fumiga hoy | Una línea | `fumigacion_label` | cualificación |
-   | Provincia | Una línea | `provincia_label` | cualificación |
-   | Inversión | Una línea | `inversion_label` | cualificación |
-   | Qué le pasa al fumigar | Varias líneas | `objetivo` | cualificación |
-   | Califica | Una línea | `resultado` (`CALIFICA` / `NO_CALIFICA`) | cualificación |
-
-   **FB clid** no hace falta crearlo: GHL ya lo trae como campo estándar. Lo usa el workflow de
-   venta cerrada (sección 4).
-
-   **Para qué sirven:**
-   - **UTM:** filtrar contactos y oportunidades por campaña o anuncio, y ver cuál trae citas y
-     ventas, no solo leads. Dentro de la nota también están, pero por texto no se puede filtrar.
-     UTM Medium y Term son opcionales, porque casi siempre traen el mismo valor.
-   - **Cualificación:** el asesor ve las respuestas en la ficha sin abrir la nota. También sirven
-     para armar listas, por ejemplo "banano + Los Ríos + más de 50 ha".
-
-   **No se crean:**
-   - **fbc y fbp:** la landing los manda directo a Meta, y la acción de Meta de GHL usa el fbclid.
-   - **Etapa:** el If/Else la lee directo del webhook.
-   - **Event ID:** en este funnel los eventos a Meta los manda la landing.
-   - **URL de registro:** ya está en la nota.
-
-   Los campos de cualificación se mapean **solo** en ese workflow. Si se mapean en el de contacto,
-   cada registro o cita los sobrescribe con vacío.
+   Si más adelante quieren filtrar o armar listas por cultivo, provincia o campaña, se crean los
+   campos y se mapean desde el webhook (`cultivo_label`, `utm_campaign`, etc.). Solo los contactos
+   nuevos los tendrán llenos.
 
 3. **Pipeline: se adapta el que ya viene en la subcuenta, "Citas Agendadas (Cierre De Ventas)"**.
    Este pipeline se copia junto con las automatizaciones de Bakano. No se crea otro. Sus etapas
@@ -108,8 +82,6 @@ Esta parte corre para todas las etapas:
    - Country ← `Pais`. Llega el nombre ("Ecuador"). Si en la prueba el contacto queda sin país,
      quita este mapeo: el teléfono ya trae el +593.
    - Contact source: texto fijo `Funnel VSL ALCO finca`
-   - UTM Source ← `Utm_source` · UTM Campaign ← `Utm_campaign` · UTM Content ← `Utm_content`
-     (campos personalizados)
    - **No** mapear City: este funnel no pregunta ciudad (`ASK_CITY = false`).
 2. **Esperar** 5 segundos.
 3. **Añadir etiqueta** `funnel-alco-finca`.
@@ -136,41 +108,29 @@ formulario sin enviarlo. **No** es una conversión.
 
 **Trigger:** Webhook entrante, con la URL `…/lXQkJvJH1icRLPrNGYra`.
 
-1. **Crear/actualizar contacto** con el mismo mapeo básico (nombre, apellido, email, teléfono, país)
-   y además los campos de cualificación: Finca, Cultivo, Hectáreas, Cómo fumiga hoy, Provincia,
-   Inversión ← cada `*_label`; Qué le pasa al fumigar ← `objetivo`; Califica ← `resultado`.
-2. **Esperar** 5 s → **Añadir etiqueta** `funnel-alco-finca-cualificacion` → **Nota** ← `nota`
-   (trae todas las respuestas).
+1. **Crear/actualizar contacto** con el mismo mapeo que el workflow de contacto (nombre,
+   apellido, email, teléfono). Las respuestas no se mapean: van en la nota.
+2. **Esperar** 5 s → **Añadir etiqueta** ← `Inbound Webhook Trigger.Tags` → **Nota** ← `nota`
+   (trae todas las respuestas). `Tags` pone de una vez las etiquetas que manda la landing:
+   `funnel-alco-finca`, `step-2-cualificacion` y `califica` o `no-califica`. Comprobado en la
+   prueba del 9 nov. 2026: llegan como etiquetas separadas. Por eso las ramas no llevan
+   etiqueta propia.
 3. **Si/De lo contrario** según `{{inboundWebhookRequest.califica}}` (llega `true` o `false`):
 
    - **Califica (`true`)**
-     1. Etiqueta `funnel-alco-finca-califica`
-     2. Oportunidad → `Calificado (sin cita)`
-     3. Notificación interna al asesor con la nota (es un lead de ~$23.000: que lo vea ya)
-     4. Esperar 2 h → **Si** NO tiene `funnel-alco-finca-cita` → WhatsApp con el link
+     1. Oportunidad → `Calificado (sin cita)`
+     2. Notificación interna al asesor con la nota (es un lead de ~$23.000: que lo vea ya)
+     3. Esperar 2 h → **Si** NO tiene `funnel-alco-finca-cita` → WhatsApp con el link
         https://alco-funnel.vercel.app/agendar
    - **No califica (`false`)**
-     1. Etiqueta `funnel-alco-finca-no-califica`
-     2. Oportunidad → `No califica` (la última etapa del pipeline)
-     3. Opcional: nutrición (contenido, redes de ALCO). **Sin evento de Meta.**
+     1. Oportunidad → `No califica` (la última etapa del pipeline)
+     2. Opcional: nutrición (contenido, redes de ALCO). **Sin evento de Meta.**
    - **None** → etiqueta `funnel-alco-finca-revisar` + notificación interna. No la dejes vacía.
 
 **Quién no califica** (`src/utils/qualification.ts`): solo quien responde "No tengo finca, solo
 quiero informarme" o "Por ahora no tengo cómo invertir". Fincas de menos de 30 ha **sí** califican.
 El cultivo, cómo fumiga y la provincia son información para el asesor.
 
-**Valores que pueden llegar** (en `*_label`, tal cual):
-
-| Pregunta | Opciones |
-|---|---|
-| Finca | Sí, tengo mi finca en producción · Administro o manejo la finca de mi familia o de un socio · No tengo finca, solo quiero informarme |
-| Cultivo | Banano o plátano · Cacao · Arroz · Maíz · Otro cultivo |
-| Hectáreas | Menos de 30 ha · Entre 30 y 50 ha · Entre 50 y 100 ha · Más de 100 ha |
-| Cómo fumiga hoy | Contrato un servicio externo (dron, avioneta o cuadrilla) · Con mi gente: bomba de mochila o tractor · Ya tengo dron y quiero otro o renovarlo |
-| Provincia | Guayas · Los Ríos · El Oro · Manabí · Otra provincia |
-| Inversión | Tengo el capital para comprarlo · Con financiamiento o crédito · Por ahora no tengo cómo invertir |
-
-Si prefieres usar campos de tipo desplegable en vez de texto, ponles exactamente estas opciones.
 
 ---
 
@@ -217,14 +177,14 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
 2. **Revisa en GHL** el contacto de prueba:
    - existe **uno solo**, con el teléfono `+593…` y el país;
    - tiene las notas de registro, cualificación y cita;
-   - tiene las etiquetas `funnel-alco-finca`, `-registro`, `-cualificacion`, `-califica` y `-cita`;
-   - los campos están llenos: FB clid `TEST_e2e`, UTM Campaign `TEST-e2e`, país y las respuestas
-     de la cualificación con su texto;
+   - tiene las etiquetas `funnel-alco-finca`, `funnel-alco-finca-registro`, `step-2-cualificacion`,
+     `califica` y `funnel-alco-finca-cita`, cada una separada;
+   - tiene el FB clid `TEST_e2e` y el país, y la nota de cualificación con todas las respuestas;
    - hay **una sola** oportunidad, en "Citas Agendadas (Cierre De Ventas)" → **Agendo Llamada**
      (no retrocedió);
    - el historial de los dos workflows no tiene errores y ninguno pasó por la rama None.
 3. **No califica:** copia `e2e/agenda.json`, cambia la respuesta de `finca` a `sin_finca` y repite.
-   Debe quedar con la etiqueta `-no-califica` y sin evento Lead en Meta.
+   Debe quedar con la etiqueta `no-califica`, la oportunidad en "No califica" y sin evento Lead en Meta.
 4. **Abandono:** abre el registro, escribe solo el email y cierra el formulario. Debe llegar
    `registro_parcial` con la etiqueta `-parcial` en la etapa Registro incompleto.
 5. **Borra** los contactos de prueba al terminar.
@@ -232,7 +192,7 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
 ## Checklist
 
 - [ ] Desduplicación por email/teléfono activa
-- [ ] Carpeta "Funnel ALCO finca" con 3 UTM + 8 de cualificación
+- [ ] Crear contacto con datos de contacto + FB clid (sin campos personalizados)
 - [ ] Pipeline "Citas Agendadas (Cierre De Ventas)" con las 4 etapas nuevas (Registro incompleto, Registrado, Calificado (sin cita), No califica)
 - [ ] Definido con ALCO qué etapa cuenta como venta (Cerrado - Contrato o Pago de Reserva)
 - [ ] Workflow OBTENER CONTACTO con la condición por `etapa` (3 ramas + None)
