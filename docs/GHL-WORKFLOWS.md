@@ -65,12 +65,26 @@ etapas `pago-iniciado` y `pagado` nunca llegan.
    Los campos de cualificación se mapean **solo** en ese workflow. Si se mapean en el de contacto,
    cada registro o cita los sobrescribe con vacío.
 
-3. **Pipeline "Funnel VSL ALCO finca"**, con estas etapas en este orden:
-   `Registro incompleto` · `Registrado` · `No califica` · `Calificado (sin cita)` · `Cita agendada`.
-   Para el asesor puedes agregar después `Reunión hecha` · `Cotización enviada` · y luego Ganada/Perdida.
-   En **todas** las acciones de oportunidad: **"Crear o actualizar"** y
-   **"Permitir pasar a una etapa anterior" apagado**. Así, si llega tarde un `registro` después de
-   una `cita_agendada`, la tarjeta no retrocede.
+3. **Pipeline: se adapta el que ya viene en la subcuenta, "Citas Agendadas (Cierre De Ventas)"**.
+   Este pipeline se copia junto con las automatizaciones de Bakano. No se crea otro. Sus etapas
+   empiezan en la cita, así que se agregan las del funnel **antes** y una al **final**
+   (en negrita las nuevas):
+
+   **Registro incompleto** · **Registrado** · **Calificado (sin cita)** · Agendo Llamada ·
+   Esperando Llamada (confirmado) · Reagendamiento · No Asistió · Asistió · 2da Llamada Agendada ·
+   En Espera de Pago · Pago de Reserva · Cerrado - Contrato · Seguimiento General ·
+   Seguimiento Caliente · No Interesado y/o Perdidos · **No califica**
+
+   - "No califica" va al final, aparte de "No Interesado y/o Perdidos". Así, los descartados por la
+     cualificación no se mezclan con las ventas perdidas en los reportes.
+   - Si alco-landing1 usa este mismo pipeline, las etapas nuevas no la afectan: sus workflows
+     siguen moviendo a las etapas de siempre.
+   - En **todas** las acciones de oportunidad de esta guía: pipeline "Citas Agendadas (Cierre De
+     Ventas)", **"Crear o actualizar"** y **"Permitir pasar a una etapa anterior" apagado**. Así, si
+     llega tarde un `registro` después de una `cita_agendada`, la tarjeta no retrocede.
+   - Revisa si el pipeline llegó con workflows propios, por ejemplo uno que se dispare al entrar a
+     "Agendo Llamada" y mande algo a Meta o un mensaje. Si existe, podría duplicar lo que hace la
+     landing o el calendario.
 
 4. **Calendario.** Ya está conectado (`p7YsTfZnCmrsX9EMsBRv`). Revisa que tenga asignado al asesor
    y que la disponibilidad coincida con los cupos de la semana (`CUPOS_SEMANA = 3`, por confirmar).
@@ -107,7 +121,7 @@ Esta parte corre para todas las etapas:
 |---|---|---|---|
 | `registro` | `funnel-alco-finca-registro` | Registrado | Opcional: WhatsApp de bienvenida con el link a https://alco-funnel.vercel.app/ver-video |
 | `registro_parcial` | `funnel-alco-finca-parcial` | Registro incompleto | Esperar 30 min → **Si** NO tiene `funnel-alco-finca-registro` → WhatsApp "te quedaste a un paso" con el link a la landing |
-| `cita_agendada` | `funnel-alco-finca-cita` | Cita agendada | Notificación interna al asesor (la confirmación al cliente la manda el calendario) |
+| `cita_agendada` | `funnel-alco-finca-cita` | Agendo Llamada | Notificación interna al asesor (la confirmación al cliente la manda el calendario) |
 | **None** → renómbrala "Etapa desconocida" | `funnel-alco-finca-revisar` | — | Notificación interna con la nota: llegó una etapa que el flujo no conoce |
 
 **Por qué la condición:** si no la pones, un abandono (`registro_parcial`) queda como "Registrado"
@@ -137,7 +151,7 @@ formulario sin enviarlo. **No** es una conversión.
         https://alco-funnel.vercel.app/agendar
    - **No califica (`false`)**
      1. Etiqueta `funnel-alco-finca-no-califica`
-     2. Oportunidad → `No califica`, o ninguna
+     2. Oportunidad → `No califica` (la última etapa del pipeline)
      3. Opcional: nutrición (contenido, redes de ALCO). **Sin evento de Meta.**
    - **None** → etiqueta `funnel-alco-finca-revisar` + notificación interna. No la dejes vacía.
 
@@ -176,7 +190,9 @@ Si prefieres usar campos de tipo desplegable en vez de texto, ponles exactamente
 
 Sirve para que Meta aprenda qué leads terminan comprando un dron, no solo cuáles agendan.
 
-1. **Trigger:** cambia el estado de la oportunidad → pipeline "Funnel VSL ALCO finca", estado **Ganada**.
+1. **Trigger:** Etapa del pipeline cambiada → pipeline "Citas Agendadas (Cierre De Ventas)", etapa
+   **Cerrado - Contrato**. Si para ALCO la reserva ya cuenta como venta, usa **Pago de Reserva**,
+   pero solo una de las dos, para no mandar dos compras por el mismo cliente. Por confirmar con ALCO.
 2. **Meta Conversion API:**
    - Evento `Purchase`. Este funnel no cobra en la landing, así que no hay duplicado.
    - Valor ← el valor de la oportunidad (el asesor lo pone al cerrar). Nunca un valor fijo.
@@ -204,7 +220,8 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
    - tiene las etiquetas `funnel-alco-finca`, `-registro`, `-cualificacion`, `-califica` y `-cita`;
    - los campos están llenos: FB clid `TEST_e2e`, UTM Campaign `TEST-e2e`, país y las respuestas
      de la cualificación con su texto;
-   - hay **una sola** oportunidad y está en **Cita agendada** (no retrocedió);
+   - hay **una sola** oportunidad, en "Citas Agendadas (Cierre De Ventas)" → **Agendo Llamada**
+     (no retrocedió);
    - el historial de los dos workflows no tiene errores y ninguno pasó por la rama None.
 3. **No califica:** copia `e2e/agenda.json`, cambia la respuesta de `finca` a `sin_finca` y repite.
    Debe quedar con la etiqueta `-no-califica` y sin evento Lead en Meta.
@@ -216,7 +233,8 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
 
 - [ ] Desduplicación por email/teléfono activa
 - [ ] Carpeta "Funnel ALCO finca" con 3 UTM + 8 de cualificación
-- [ ] Pipeline con las 5 etapas, sin retroceso
+- [ ] Pipeline "Citas Agendadas (Cierre De Ventas)" con las 4 etapas nuevas (Registro incompleto, Registrado, Calificado (sin cita), No califica)
+- [ ] Definido con ALCO qué etapa cuenta como venta (Cerrado - Contrato o Pago de Reserva)
 - [ ] Workflow OBTENER CONTACTO con la condición por `etapa` (3 ramas + None)
 - [ ] Workflow obtener cualificacion con la condición por `califica` (2 ramas + None)
 - [ ] Ningún workflow manda CompleteRegistration / Lead / Schedule a Meta
