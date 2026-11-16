@@ -34,7 +34,7 @@ export const GHL_BOOKING_CALENDAR = 'https://api.leadconnectorhq.com/widget/book
 export const GHL_BOOKING_FRAME_ID = 'p7YsTfZnCmrsX9EMsBRv_1793804976879'
 
 // ── Video ─────────────────────────────────────────────────────────────────────
-export const WISTIA_MEDIA_ID = ''
+export const WISTIA_MEDIA_ID = '3expgrwlpo'
 // Segundos que el CTA de /ver-video queda bloqueado (0 = sin bloqueo). En localhost son 3 s.
 export const CTA_UNLOCK_SECONDS = 120
 

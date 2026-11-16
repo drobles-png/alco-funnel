@@ -26,7 +26,7 @@ E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps 
 | `GHL_CONTACT_WEBHOOK` | `…/XoOotYo4Ler5SKSjWqAV` (registro, cita_agendada) |
 | `GHL_QUALIFICATION_WEBHOOK` | `…/lXQkJvJH1icRLPrNGYra` (cualificación) |
 | `GHL_BOOKING_CALENDAR` / `_FRAME_ID` | `widget/booking/p7YsTfZnCmrsX9EMsBRv` / `p7YsTfZnCmrsX9EMsBRv_1793804976879` |
-| `WISTIA_MEDIA_ID` | **PENDIENTE** (sin video, /ver-video muestra "se publica en breve") |
+| `WISTIA_MEDIA_ID` | `3expgrwlpo` |
 | `ASK_CITY` | `false` (la provincia ya se pregunta en la cualificación) |
 | `CUPOS_SEMANA` | `0`: ALCO atiende ~100 reuniones/semana, así que no se muestra la píldora de cupos |
 | `SITE_URL` | `https://alco-funnel.vercel.app` (también en index.html og:url/og:image) |
@@ -60,6 +60,5 @@ cierra la agenda semanal. No se reinicia por visitante.
 - No poner `META_CAPI_TEST_EVENT_CODE` en producción.
 
 ## Pendientes
-- ID de Wistia del VSL.
 - Datos legales de ALCO.
 - Terminar los workflows de GHL según `docs/GHL-WORKFLOWS.md` (sin campos personalizados: las respuestas van en la nota) y probarlos con contactos de prueba.

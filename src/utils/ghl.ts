@@ -3,16 +3,24 @@
  * Todos los webhooks de la subcuenta actualizan el MISMO contacto (GHL deduplica por email/teléfono
  * si la desduplicación está activa), así que el avance de etapa reutiliza el webhook de contacto.
  */
-import { FUNNEL_TAG, GHL_CONTACT_WEBHOOK } from '@/config/funnel'
+import { FUNNEL_TAG, GHL_CONTACT_WEBHOOK, IS_LOCAL } from '@/config/funnel'
 import { getStoredFbParams } from './fbclid'
 
 export function generateEventId(prefix = 'evt'): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`
 }
 
+// En localhost no sale nada al CRM del cliente (solo se ve en consola como [GHL stub]),
+// salvo que la página se abra con ?ghl=1 para probar los workflows a propósito.
+const LOCAL_STUB = IS_LOCAL && !new URLSearchParams(window.location.search).has('ghl')
+
 /** Vacío = no se envía nada. Nunca lanza: el tracking jamás bloquea la UX. */
 export async function postToGhl(url: string, body: Record<string, unknown>): Promise<void> {
   if (!url) return
+  if (LOCAL_STUB) {
+    console.info('[GHL stub]', body.etapa, body)
+    return
+  }
   try {
     await fetch(url, {
       method: 'POST',

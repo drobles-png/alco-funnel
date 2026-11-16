@@ -19,7 +19,7 @@ coverage
 .idea
 
 # Salidas del e2e y caches locales
-e2e_out/
+e2e-out/
 .impeccable/
 node-compile-cache/
 
