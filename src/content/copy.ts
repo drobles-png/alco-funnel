@@ -130,7 +130,7 @@ export const BOOKED = {
 // ── /sin-espacio ──────────────────────────────────────────────────────────────
 export const NO_SPACE = {
   title: 'Todavía no es el momento, y está bien',
-  text: 'Esta reunión es para agricultores con finca en producción que están listos para tener su propio dron. Cuando estés listo, aquí estamos.',
+  text: 'Esta reunión es para quienes tienen finca en producción o prestan el servicio de fumigación y están listos para tener su propio dron. Cuando estés listo, aquí estamos.',
   cooldown: 'Ya enviaste una solicitud. Podrás intentarlo de nuevo en',
   resourcesTitle: `Sigue aprendiendo con ${BRAND_NAME}`,
   resourcesText: 'En nuestras redes compartimos lo que vemos todos los días en el campo con los drones de fumigación.',

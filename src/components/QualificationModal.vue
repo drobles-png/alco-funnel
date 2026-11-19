@@ -6,7 +6,7 @@
  * y va a /agendar; si no, a /sin-espacio (cooldown de 24 h).
  * Preguntas y regla: src/utils/qualification.ts.
  */
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { GHL_QUALIFICATION_WEBHOOK, IS_LOCAL, STORAGE_PREFIX } from '@/config/funnel'
 import { CUALIFICACION } from '@/content/copy'
@@ -17,10 +17,13 @@ import { buildPayload, fbq, generateEventId, postToGhl } from '@/utils/ghl'
 import {
   OBJETIVO,
   QUESTIONS,
+  cantonesDe,
   emptyAnswers,
   labelFor,
+  optionsFor,
   qualifies,
   type Answers,
+  type Question,
   type QuestionKey,
 } from '@/utils/qualification'
 
@@ -30,9 +33,14 @@ const emit = defineEmits<{ (e: 'close'): void }>()
 const router = useRouter()
 const contactStore = useContactStore()
 
-const TOTAL_STEPS = QUESTIONS.length + 1
+// Vista tipada de las preguntas (con los campos opcionales de Question)
+type Q = Question & { key: QuestionKey }
+const QS: readonly Q[] = QUESTIONS
+const TOTAL_STEPS = QS.length + 1
 const step = ref(1)
 const answers = ref<Answers>(emptyAnswers())
+const otros = ref<Record<string, string>>({}) // texto de la opción "Otro" (ej. cultivo)
+const canton = ref('')
 const objetivo = ref('')
 const consent = ref(false)
 const touched = ref(false)
@@ -41,10 +49,29 @@ const submitting = ref(false)
 const modalEl = ref<HTMLElement | null>(null)
 const { focusWithin } = useDialogFocus(modalEl, () => props.open, '.q-option input')
 
-const question = computed(() => QUESTIONS[step.value - 1])
+const question = computed<Q | undefined>(() => QS[step.value - 1])
+const options = computed(() => (question.value ? optionsFor(question.value, answers.value.perfil) : []))
+const cantones = computed(() => cantonesDe(answers.value.provincia))
+const titleOf = (q: Q) => q.titleByPerfil?.[answers.value.perfil] ?? q.title
+const isOther = (q: Q) => !!q.other && answers.value[q.key] === q.other.value
+
+function stepComplete(q: Q): boolean {
+  const v = answers.value[q.key]
+  if (!v) return false
+  if (q.kind === 'ubicacion') return !!canton.value
+  // Una respuesta que este perfil ya no ve (cambió de perfil al volver atrás) no cuenta
+  if (!optionsFor(q, answers.value.perfil).some((o) => o.value === v)) return false
+  return !isOther(q) || !!otros.value[q.key]?.trim()
+}
+
+/** Texto para la nota y `*_label`: "Otro cultivo: pitahaya" si escribió cuál. */
+function labelOf(q: Q): string {
+  const base = labelFor(q.key, answers.value[q.key])
+  return isOther(q) ? `${base}: ${otros.value[q.key].trim()}` : base
+}
 const wordCount = (t: string) => t.trim().split(/\s+/).filter(Boolean).length
 const objetivoOk = computed(() => wordCount(objetivo.value) >= OBJETIVO.minWords)
-const currentHasValue = () => (question.value ? !!answers.value[question.value.key] : false)
+const currentHasValue = () => (question.value ? stepComplete(question.value) : false)
 
 // ── Navegación: clic/Espacio elige y avanza; las flechas eligen sin avanzar ───
 let advanceTimer: ReturnType<typeof setTimeout> | undefined
@@ -61,12 +88,23 @@ function goTo(n: number) {
 
 function onOptionChange(key: QuestionKey, value: string) {
   answers.value[key] = value
+  // "Otro": no avanza, espera a que escriba cuál
+  if (question.value && isOther(question.value)) {
+    arrowNav = false
+    clearTimeout(advanceTimer)
+    nextTick(() => focusWithin('.q-other input'))
+    return
+  }
   if (arrowNav) {
     arrowNav = false
     return
   }
   clearTimeout(advanceTimer)
   advanceTimer = setTimeout(() => goTo(step.value + 1), 250)
+}
+
+function onProvinciaChange() {
+  canton.value = ''
 }
 
 function onOptionKeydown(e: KeyboardEvent) {
@@ -86,7 +124,7 @@ function onStepEnter() {
 // ── Envío ─────────────────────────────────────────────────────────────────────
 async function handleSubmit() {
   touched.value = true
-  const complete = QUESTIONS.every((q) => !!answers.value[q.key])
+  const complete = QS.every(stepComplete)
   if (!complete || !objetivoOk.value || !consent.value) return
   submitting.value = true
 
@@ -95,20 +133,35 @@ async function handleSubmit() {
   const califica = qualifies(a)
   const resultado = califica ? 'CALIFICA' : 'NO_CALIFICA'
   const eventId = generateEventId('cualificacion')
-  const labels = Object.fromEntries(QUESTIONS.map((q) => [`${q.key}_label`, labelFor(q.key, a[q.key])]))
+  const labels = Object.fromEntries(QS.map((q) => [`${q.key}_label`, labelOf(q)]))
+  const cantonLabel = cantones.value.find((x) => x.value === canton.value)?.label ?? ''
+  const nota = QS.flatMap((q) =>
+    q.kind === 'ubicacion'
+      ? [[q.noteLabel, labelOf(q)], ['Cantón', cantonLabel]]
+      : [[q.noteLabel, labelOf(q)]],
+  )
 
   await postToGhl(
     GHL_QUALIFICATION_WEBHOOK,
     buildPayload('cualificacion', c, {
-      tags: ['step-2-cualificacion', califica ? 'califica' : 'no-califica'],
+      tags: ['step-2-cualificacion', califica ? 'califica' : 'no-califica', `perfil-${a.perfil}`],
       titulo: califica ? '✅ CALIFICA' : '❌ NO CALIFICA',
       detalle: {
-        ...Object.fromEntries(QUESTIONS.map((q) => [q.noteLabel, labelFor(q.key, a[q.key])])),
+        ...Object.fromEntries(nota),
         Objetivo: objetivo.value.trim(),
         Resultado: resultado,
       },
       eventId,
-      extra: { ...a, ...labels, objetivo: objetivo.value.trim(), califica, resultado },
+      extra: {
+        ...a,
+        ...labels,
+        canton: canton.value,
+        canton_label: cantonLabel,
+        cultivo_otro: otros.value.cultivo?.trim() ?? '',
+        objetivo: objetivo.value.trim(),
+        califica,
+        resultado,
+      },
     }),
   )
 
@@ -124,7 +177,7 @@ async function handleSubmit() {
   }
 
   try {
-    localStorage.setItem(`${STORAGE_PREFIX}_qualification`, JSON.stringify({ ...a, califica, timestamp: Date.now() }))
+    localStorage.setItem(`${STORAGE_PREFIX}_qualification`, JSON.stringify({ ...a, canton: canton.value, califica, timestamp: Date.now() }))
     if (!califica && !IS_LOCAL) localStorage.setItem(`${STORAGE_PREFIX}_disq_at`, String(Date.now()))
   } catch {
     /* ignorar */
@@ -146,6 +199,8 @@ watch(
     if (open) {
       step.value = 1
       answers.value = emptyAnswers()
+      otros.value = {}
+      canton.value = ''
       objetivo.value = ''
       consent.value = false
       touched.value = false
@@ -205,10 +260,35 @@ onUnmounted(() => {
           <form class="q-form" novalidate @submit.prevent="handleSubmit">
             <Transition name="q-step" mode="out-in" @after-enter="onStepEnter">
               <fieldset v-if="question" :key="question.key" class="q-fieldset">
-                <legend class="q-legend">{{ question.title }}</legend>
-                <div class="q-options" @keydown="onOptionKeydown">
+                <legend class="q-legend">{{ titleOf(question) }}</legend>
+
+                <div v-if="question.kind === 'ubicacion'" class="q-ubicacion">
+                  <div class="field">
+                    <label for="q-provincia">Provincia</label>
+                    <select
+                      id="q-provincia"
+                      v-model="answers[question.key]"
+                      data-field="provincia"
+                      @change="onProvinciaChange"
+                    >
+                      <option value="" disabled>Elige tu provincia</option>
+                      <option v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="q-canton">Cantón</label>
+                    <select id="q-canton" v-model="canton" data-field="canton" :disabled="!cantones.length">
+                      <option value="" disabled>
+                        {{ cantones.length ? 'Elige tu cantón' : 'Primero elige la provincia' }}
+                      </option>
+                      <option v-for="c in cantones" :key="c.value" :value="c.value">{{ c.label }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div v-else class="q-options" @keydown="onOptionKeydown">
                   <label
-                    v-for="opt in question.options"
+                    v-for="opt in options"
                     :key="opt.value"
                     class="q-option"
                     :class="{ 'is-selected': answers[question.key] === opt.value }"
@@ -224,6 +304,17 @@ onUnmounted(() => {
                     <span class="q-option__radio" aria-hidden="true" />
                     <span>{{ opt.label }}</span>
                   </label>
+                  <div v-if="isOther(question)" class="field q-other">
+                    <label :for="`q-${question.key}-otro`" class="sr-only">{{ question.other?.placeholder }}</label>
+                    <input
+                      :id="`q-${question.key}-otro`"
+                      v-model="otros[question.key]"
+                      :data-field="`${question.key}_otro`"
+                      type="text"
+                      maxlength="80"
+                      :placeholder="question.other?.placeholder"
+                    />
+                  </div>
                 </div>
               </fieldset>
 
@@ -386,6 +477,12 @@ onUnmounted(() => {
       border: 5px solid $primary;
     }
   }
+}
+
+.q-ubicacion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .q-hint {

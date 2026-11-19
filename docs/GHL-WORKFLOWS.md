@@ -39,7 +39,7 @@ etapas `pago-iniciado` y `pagado` nunca llegan.
    campos y se mapean desde el webhook (`cultivo_label`, `utm_campaign`, etc.). Solo los contactos
    nuevos los tendrán llenos.
 
-3. **Pipeline: se adapta el que ya viene en la subcuenta, "Citas Agendadas (Cierre De Ventas)"**.
+3. **Pipeline: se adapta el que ya viene en la subcuenta, "VSL 1"**.
    Este pipeline se copia junto con las automatizaciones de Bakano. No se crea otro. Sus etapas
    empiezan en la cita, así que se agregan las del funnel **antes** y una al **final**
    (en negrita las nuevas):
@@ -61,7 +61,7 @@ etapas `pago-iniciado` y `pagado` nunca llegan.
      landing o el calendario.
 
 4. **Calendario.** Ya está conectado (`p7YsTfZnCmrsX9EMsBRv`). Revisa que tenga asignado al asesor
-   y que la disponibilidad coincida con los cupos de la semana (`CUPOS_SEMANA = 3`, por confirmar).
+   y que la disponibilidad coincida con los cupos de la semana (`CUPOS_SEMANA = 5`).
 
 5. **WhatsApp.** Antes de activar los mensajes, ten aprobadas las plantillas que se envíen fuera de
    la ventana de 24 h.
@@ -91,9 +91,9 @@ Esta parte corre para todas las etapas:
 
 | Rama | Etiqueta | Oportunidad (crear o actualizar) | Mensajes sugeridos |
 |---|---|---|---|
-| `registro` | `funnel-alco-finca-registro` | Registrado | Opcional: WhatsApp de bienvenida con el link a https://alco-funnel.vercel.app/ver-video |
-| `registro_parcial` | `funnel-alco-finca-parcial` | Registro incompleto | Esperar 30 min → **Si** NO tiene `funnel-alco-finca-registro` → WhatsApp "te quedaste a un paso" con el link a la landing |
-| `cita_agendada` | `funnel-alco-finca-cita` | Agendo Llamada | Notificación interna al asesor (la confirmación al cliente la manda el calendario) |
+| `registro` | — (ya llega `step-1-registro`) | Registrado | Opcional: WhatsApp de bienvenida con el link a https://alco-funnel.vercel.app/ver-video |
+| `registro_parcial` | — (ya llega `step-1-registro-parcial`) | Registro incompleto | Esperar 30 min → **Si** NO tiene `step-1-registro` → WhatsApp "te quedaste a un paso" con el link a la landing |
+| `cita_agendada` | — (ya llega `step-cita-agendada`) | Agendo Llamada | Notificación interna al asesor (la confirmación al cliente la manda el calendario) |
 | **None** → renómbrala "Etapa desconocida" | `funnel-alco-finca-revisar` | — | Notificación interna con la nota: llegó una etapa que el flujo no conoce |
 
 **Por qué la condición:** si no la pones, un abandono (`registro_parcial`) queda como "Registrado"
@@ -112,7 +112,8 @@ formulario sin enviarlo. **No** es una conversión.
    apellido, email, teléfono). Las respuestas no se mapean: van en la nota.
 2. **Esperar** 5 s → **Añadir etiqueta** ← `Inbound Webhook Trigger.Tags` → **Nota** ← `nota`
    (trae todas las respuestas). `Tags` pone de una vez las etiquetas que manda la landing:
-   `funnel-alco-finca`, `step-2-cualificacion` y `califica` o `no-califica`. Comprobado en la
+   `funnel-alco-finca`, `step-2-cualificacion`, `califica` o `no-califica`, y el perfil:
+   `perfil-productor`, `perfil-prestador`, `perfil-ambos` o `perfil-sin_finca`. Comprobado en la
    prueba del 9 nov. 2026: llegan como etiquetas separadas. Por eso las ramas no llevan
    etiqueta propia.
 3. **Si/De lo contrario** según `{{inboundWebhookRequest.califica}}` (llega `true` o `false`):
@@ -120,7 +121,7 @@ formulario sin enviarlo. **No** es una conversión.
    - **Califica (`true`)**
      1. Oportunidad → `Calificado (sin cita)`
      2. Notificación interna al asesor con la nota (es un lead de ~$23.000: que lo vea ya)
-     3. Esperar 2 h → **Si** NO tiene `funnel-alco-finca-cita` → WhatsApp con el link
+     3. Esperar 2 h → **Si** NO tiene `step-cita-agendada` → WhatsApp con el link
         https://alco-funnel.vercel.app/agendar
    - **No califica (`false`)**
      1. Oportunidad → `No califica` (la última etapa del pipeline)
@@ -128,8 +129,15 @@ formulario sin enviarlo. **No** es una conversión.
    - **None** → etiqueta `funnel-alco-finca-revisar` + notificación interna. No la dejes vacía.
 
 **Quién no califica** (`src/utils/qualification.ts`): solo quien responde "No tengo finca, solo
-quiero informarme" o "Por ahora no tengo cómo invertir". Fincas de menos de 30 ha **sí** califican.
-El cultivo, cómo fumiga y la provincia son información para el asesor.
+quiero informarme" o "Por ahora no tengo cómo invertir". Fincas de menos de 30 ha **sí** califican,
+y el **prestador de servicios de fumigación también** (compra el dron para trabajar). El cultivo,
+cómo fumiga, la provincia y el cantón son información para el asesor.
+
+**Preguntas (desde el 19 nov. 2026):** perfil (productor / prestador / ambos / sin finca) · cultivo
+(con "Otro → escribe cuál") · hectáreas · cómo fumiga · provincia y cantón (listas del INEC) ·
+inversión · pregunta abierta. Para filtrar en GHL ya sirven las etiquetas `perfil-*`. Si quieren
+filtrar por cultivo, provincia o cantón, se crean esos campos y se mapean desde el webhook con
+`cultivo_label`, `provincia_label` y `canton_label`.
 
 
 ---
@@ -150,7 +158,7 @@ El cultivo, cómo fumiga y la provincia son información para el asesor.
 
 Sirve para que Meta aprenda qué leads terminan comprando un dron, no solo cuáles agendan.
 
-1. **Trigger:** Etapa del pipeline cambiada → pipeline "Citas Agendadas (Cierre De Ventas)", etapa
+1. **Trigger:** Etapa del pipeline cambiada → pipeline "VSL 1", etapa
    **Cerrado - Contrato**. Si para ALCO la reserva ya cuenta como venta, usa **Pago de Reserva**,
    pero solo una de las dos, para no mandar dos compras por el mismo cliente. Por confirmar con ALCO.
 2. **Meta Conversion API:**
@@ -177,10 +185,10 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
 2. **Revisa en GHL** el contacto de prueba:
    - existe **uno solo**, con el teléfono `+593…` y el país;
    - tiene las notas de registro, cualificación y cita;
-   - tiene las etiquetas `funnel-alco-finca`, `funnel-alco-finca-registro`, `step-2-cualificacion`,
-     `califica` y `funnel-alco-finca-cita`, cada una separada;
+   - tiene las etiquetas `funnel-alco-finca`, `ads-bakano`, `step-1-registro`, `step-2-cualificacion`,
+     `califica` y `step-cita-agendada`, cada una separada;
    - tiene el FB clid `TEST_e2e` y el país, y la nota de cualificación con todas las respuestas;
-   - hay **una sola** oportunidad, en "Citas Agendadas (Cierre De Ventas)" → **Agendo Llamada**
+   - hay **una sola** oportunidad, en "VSL 1" → **Agendo Llamada**
      (no retrocedió);
    - el historial de los dos workflows no tiene errores y ninguno pasó por la rama None.
 3. **No califica:** copia `e2e/agenda.json`, cambia la respuesta de `finca` a `sin_finca` y repite.
@@ -193,7 +201,7 @@ Para que funcione, el workflow de contacto tiene que haber guardado el FB clid (
 
 - [ ] Desduplicación por email/teléfono activa
 - [ ] Crear contacto con datos de contacto + FB clid (sin campos personalizados)
-- [ ] Pipeline "Citas Agendadas (Cierre De Ventas)" con las 4 etapas nuevas (Registro incompleto, Registrado, Calificado (sin cita), No califica)
+- [ ] Pipeline "VSL 1" con las 4 etapas nuevas (Registro incompleto, Registrado, Calificado (sin cita), No califica)
 - [ ] Definido con ALCO qué etapa cuenta como venta (Cerrado - Contrato o Pago de Reserva)
 - [ ] Workflow OBTENER CONTACTO con la condición por `etapa` (3 ramas + None)
 - [ ] Workflow obtener cualificacion con la condición por `califica` (2 ramas + None)

@@ -6,9 +6,13 @@
 // es el que se mapea en los campos personalizados). Ver references/contrato-ghl.md de la skill.
 // Los `value` son estables: si GHL ya está mapeado, NO renombrarlos (solo agregar).
 
+import { PROVINCIAS } from '@/data/ubicacion'
+
 export interface QuestionOption {
   value: string
   label: string
+  /** Solo se muestra a estos perfiles (vacío = a todos) */
+  perfiles?: readonly string[]
 }
 
 export interface Question {
@@ -17,23 +21,32 @@ export interface Question {
   /** Etiqueta corta para la nota del CRM */
   noteLabel: string
   options: readonly QuestionOption[]
+  /** Título distinto según el perfil (el prestador "fumiga" cultivos, no los "tiene") */
+  titleByPerfil?: Partial<Record<string, string>>
+  /** Opción que abre un campo para escribir (ej. "Otro cultivo" → cuál) */
+  other?: { value: string; placeholder: string }
+  /** 'ubicacion' = provincia + cantón en listas desplegables (cantón en `canton`) */
+  kind?: 'ubicacion'
 }
 
 export const QUESTIONS = [
   {
-    key: 'finca',
-    title: '¿Tienes tu finca andando?',
-    noteLabel: 'Finca',
+    key: 'perfil',
+    title: '¿Cuál es tu perfil?',
+    noteLabel: 'Perfil',
     options: [
-      { value: 'propia_produccion', label: 'Sí, tengo mi finca en producción' },
-      { value: 'administro', label: 'Administro o manejo la finca de mi familia o de un socio' },
+      { value: 'productor', label: 'Productor: tengo o manejo una finca' },
+      { value: 'prestador', label: 'Prestador de servicios de fumigación' },
+      { value: 'ambos', label: 'Ambos: tengo finca y presto el servicio' },
       { value: 'sin_finca', label: 'No tengo finca, solo quiero informarme' },
     ],
   },
   {
     key: 'cultivo',
     title: '¿Qué cultivo tienes?',
+    titleByPerfil: { prestador: '¿Qué cultivo fumigas más?' },
     noteLabel: 'Cultivo',
+    other: { value: 'otro', placeholder: 'Escribe tu cultivo' },
     options: [
       { value: 'banano', label: 'Banano o plátano' },
       { value: 'cacao', label: 'Cacao' },
@@ -58,22 +71,21 @@ export const QUESTIONS = [
     title: '¿Cómo fumigas hoy?',
     noteLabel: 'Fumiga hoy con',
     options: [
-      { value: 'servicio_externo', label: 'Contrato un servicio externo (dron, avioneta o cuadrilla)' },
+      {
+        value: 'servicio_externo',
+        label: 'Contrato un servicio externo (dron, avioneta o cuadrilla)',
+        perfiles: ['productor', 'ambos'],
+      },
       { value: 'personal_propio', label: 'Con mi gente: bomba de mochila o tractor' },
       { value: 'ya_tengo_dron', label: 'Ya tengo dron y quiero otro o renovarlo' },
     ],
   },
   {
     key: 'provincia',
-    title: '¿En qué provincia está tu finca?',
+    title: '¿Desde dónde nos escribes?',
     noteLabel: 'Provincia',
-    options: [
-      { value: 'guayas', label: 'Guayas' },
-      { value: 'los_rios', label: 'Los Ríos' },
-      { value: 'el_oro', label: 'El Oro' },
-      { value: 'manabi', label: 'Manabí' },
-      { value: 'otra', label: 'Otra provincia' },
-    ],
+    kind: 'ubicacion',
+    options: PROVINCIAS.map(({ value, label }) => ({ value, label })),
   },
   {
     key: 'inversion',
@@ -102,17 +114,26 @@ export const emptyAnswers = (): Answers =>
   Object.fromEntries(QUESTIONS.map((q) => [q.key, ''])) as Answers
 
 export function labelFor(key: QuestionKey, value: string): string {
-  const q = QUESTIONS.find((x) => x.key === key)
+  const q: Question | undefined = QUESTIONS.find((x) => x.key === key)
   return q?.options.find((o) => o.value === value)?.label ?? value
 }
 
+/** Opciones que ve este perfil (ej. el prestador no "contrata un servicio externo"). */
+export function optionsFor(q: Question, perfil: string): readonly QuestionOption[] {
+  return q.options.filter((o) => !o.perfiles || o.perfiles.includes(perfil))
+}
+
+export const cantonesDe = (provincia: string) =>
+  PROVINCIAS.find((p) => p.value === provincia)?.cantones ?? []
+
 // ── Regla de cualificación ────────────────────────────────────────────────────
 // Se descarta a quien no tiene finca ("solo quiero informarme") o no tiene cómo invertir
-// (ticket promedio ~$23.000). Cultivo, hectáreas, cómo fumiga y provincia no descalifican:
+// (ticket promedio ~$23.000). El prestador de servicios SÍ califica (compra el dron para trabajar;
+// decidido el 19 nov. 2026). Cultivo, hectáreas, cómo fumiga y provincia no descalifican:
 // son info para el asesor. Fincas < 30 ha siguen calificando (el VSL habla de 30, 50, 100 ha
 // como ejemplo, no como mínimo).
 const DISQUALIFY: Partial<Record<QuestionKey, readonly string[]>> = {
-  finca: ['sin_finca'],
+  perfil: ['sin_finca'],
   inversion: ['sin_presupuesto'],
 }
 

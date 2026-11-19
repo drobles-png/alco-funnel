@@ -28,7 +28,7 @@ E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps 
 | `GHL_BOOKING_CALENDAR` / `_FRAME_ID` | `widget/booking/p7YsTfZnCmrsX9EMsBRv` / `p7YsTfZnCmrsX9EMsBRv_1793804976879` |
 | `WISTIA_MEDIA_ID` | `3expgrwlpo` |
 | `ASK_CITY` | `false` (la provincia ya se pregunta en la cualificación) |
-| `CUPOS_SEMANA` | `0`: ALCO atiende ~100 reuniones/semana, así que no se muestra la píldora de cupos |
+| `CUPOS_SEMANA` | `5` (19 nov. 2026): se muestra la píldora de cupos |
 | `SITE_URL` | `https://alco-funnel.vercel.app` (también en index.html og:url/og:image) |
 | `FUNNEL_TAG` | `funnel-alco-finca` → separa estos leads de los de alco-landing1 en GHL |
 | `STORAGE_PREFIX` | `alcf` |
@@ -37,10 +37,13 @@ E2E: `python <skill>/scripts/e2e_funnel.py --base http://localhost:5173 --steps 
 `META_CAPI_TOKEN` solo en `.env.local` y env vars de Vercel.
 
 ## Cualificación — `src/utils/qualification.ts`
-Preguntas (del VSL): finca, cultivo, hectáreas, cómo fumiga hoy, provincia, inversión + abierta
-"¿Qué te pasa hoy cuando tienes que fumigar?" (`objetivo`).
-**Descalifica** solo `finca = sin_finca` o `inversion = sin_presupuesto`. Hectáreas (incl. < 30),
-cultivo, cómo fumiga y provincia son info para el asesor. Los `value` ya no se renombran una vez
+Preguntas: perfil (productor / prestador / ambos / sin_finca, pedido de ALCO 18 nov. 2026), cultivo
+(título distinto para el prestador; "otro" abre texto → `cultivo_otro`), hectáreas, cómo fumiga hoy
+(el prestador no ve "servicio externo"), provincia + cantón (`src/data/ubicacion.ts`, INEC, 24/221;
+cantón va como `canton`/`canton_label`), inversión + abierta "¿Qué te pasa hoy cuando tienes que
+fumigar?" (`objetivo`). Etiqueta `perfil-<valor>` en el envío de cualificación.
+**Descalifica** solo `perfil = sin_finca` o `inversion = sin_presupuesto`. El prestador califica.
+Hectáreas (incl. < 30), cultivo, cómo fumiga y ubicación son info para el asesor. Los `value` ya no se renombran una vez
 mapeados en GHL (solo agregar).
 
 ## Marca

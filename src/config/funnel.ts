@@ -40,10 +40,9 @@ export const CTA_UNLOCK_SECONDS = 120
 
 // ── Escasez (REAL, no inventada) ──────────────────────────────────────────────
 // Reuniones disponibles esta semana. 0 = no se muestra la píldora de cupos.
-// ALCO atiende ~100 reuniones por semana (nov. 2026): un número así no da escasez, y uno menor
-// sería falso. Solo poner un número si es el real.
+// 5 por semana, definido por Bakano el 19 nov. 2026. Solo poner un número si es el real.
 // El contador de la landing corre hasta el domingo 23:59 (hora de Ecuador), cuando cierra la semana.
-export const CUPOS_SEMANA = 0
+export const CUPOS_SEMANA = 5
 
 // ── Registro ──────────────────────────────────────────────────────────────────
 // true = el formulario de registro pide ciudad (va a GHL como `ciudad`)
